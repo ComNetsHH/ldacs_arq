@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/seba/TUHH/projects/intairnet/arq/dev/library.cpp
+library.h
+/home/seba/TUHH/projects/intairnet/arq/dev/library.h
+iostream
+-
+
+/home/seba/TUHH/projects/intairnet/arq/dev/library.h
+

@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/seba/TUHH/projects/intairnet/arq/dev/L2SegmentHeader.cpp
+L2SegmentHeader.hpp
+/home/seba/TUHH/projects/intairnet/arq/dev/L2SegmentHeader.hpp
+
+/home/seba/TUHH/projects/intairnet/arq/dev/L2SegmentHeader.hpp
+cstdint
+-
+vector
+-
+SequenceNumber.hpp
+/home/seba/TUHH/projects/intairnet/arq/dev/SequenceNumber.hpp
+
+/home/seba/TUHH/projects/intairnet/arq/dev/SequenceNumber.hpp
+cstdint
+-
+

@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/seba/TUHH/projects/intairnet/arq/dev/SequenceNumber.hpp
+cstdint
+-
+
+/home/seba/TUHH/projects/intairnet/arq/dev/tests/ArqTests.cpp
+cppunit/TestFixture.h
+-
+cppunit/extensions/HelperMacros.h
+-
+iostream
+-
+../tuhh_intairnet_arq.h
+/home/seba/TUHH/projects/intairnet/arq/dev/tuhh_intairnet_arq.h
+
+/home/seba/TUHH/projects/intairnet/arq/dev/tests/SequenceNumberTests.cpp
+cppunit/TestFixture.h
+-
+cppunit/extensions/HelperMacros.h
+-
+iostream
+-
+../SequenceNumber.hpp
+/home/seba/TUHH/projects/intairnet/arq/dev/SequenceNumber.hpp
+
+/home/seba/TUHH/projects/intairnet/arq/dev/tests/unittests.cpp
+cppunit/ui/text/TestRunner.h
+-
+iostream
+-
+ArqTests.cpp
+/home/seba/TUHH/projects/intairnet/arq/dev/tests/ArqTests.cpp
+SequenceNumberTests.cpp
+/home/seba/TUHH/projects/intairnet/arq/dev/tests/SequenceNumberTests.cpp
+
+/home/seba/TUHH/projects/intairnet/arq/dev/tuhh_intairnet_arq.h
+
