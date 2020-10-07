@@ -4,7 +4,6 @@
 
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
-#include <iostream>
 #include "../tuhh_intairnet_arq.h"
 
 class ArqTests : public CppUnit::TestFixture {
@@ -21,7 +20,7 @@ public:
 		hello();
 	}
 	
-CPPUNIT_TEST_SUITE(ArqTests);
-	CPPUNIT_TEST(test1);
-CPPUNIT_TEST_SUITE_END();
+	CPPUNIT_TEST_SUITE(ArqTests);
+		CPPUNIT_TEST(test1);
+	CPPUNIT_TEST_SUITE_END();
 };

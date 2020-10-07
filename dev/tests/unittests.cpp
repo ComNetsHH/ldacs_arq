@@ -1,5 +1,4 @@
 #include <cppunit/ui/text/TestRunner.h>
-#include <iostream>
 #include "ArqTests.cpp"
 #include "SequenceNumberTests.cpp"
 

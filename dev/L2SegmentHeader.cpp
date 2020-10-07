@@ -39,6 +39,11 @@ uint8_t TUHH_INTAIRNET_ARQ::L2SegmentHeader::getPollSlots() const {
 	return this->poll;
 }
 
+uint64_t TUHH_INTAIRNET_ARQ::L2SegmentHeader::getSize() const {
+	// 1B * (seqno + seqno_next_expected + poll + srej_list)
+	return 3 + this->srej_list_length;
+}
+
 
 
 

@@ -25,6 +25,7 @@ namespace TUHH_INTAIRNET_ARQ {
 	static const uint8_t SEQNO_MAX = 255;
 	static const uint8_t SEQNO_UNSET = 0;
 	static const uint8_t SEQNO_FIRST = 1;
+	static const uint8_t NUM_BYTES = 1;
 }
 
 

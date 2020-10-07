@@ -4,7 +4,7 @@
 
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
-#include <iostream>
+#include <cstdint>
 #include "../SequenceNumber.hpp"
 
 using namespace TUHH_INTAIRNET_ARQ;
