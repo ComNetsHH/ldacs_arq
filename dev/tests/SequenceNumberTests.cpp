@@ -21,8 +21,20 @@ class SequenceNumberTests : public CppUnit::TestFixture {
 			CPPUNIT_ASSERT_EQUAL(SEQNO_FIRST, seqno.get());
 			
 		}
+
+		void testCompare() {
+            SequenceNumber seqno1 = SequenceNumber(1);
+            SequenceNumber seqno2 = SequenceNumber(1);
+            SequenceNumber seqno3 = SequenceNumber(2);
+
+            CPPUNIT_ASSERT(seqno1 == seqno2);
+            CPPUNIT_ASSERT(!(seqno1 == seqno3));
+            CPPUNIT_ASSERT(seqno1 < seqno3);
+            CPPUNIT_ASSERT(seqno3 > seqno1);
+		}
 	
 	CPPUNIT_TEST_SUITE(SequenceNumberTests);
-		CPPUNIT_TEST(testModulo);
+        CPPUNIT_TEST(testModulo);
+        CPPUNIT_TEST(testCompare);
 	CPPUNIT_TEST_SUITE_END();
 };

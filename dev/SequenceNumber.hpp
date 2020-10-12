@@ -13,6 +13,10 @@ namespace TUHH_INTAIRNET_ARQ {
 			SequenceNumber();
 			SequenceNumber(uint8_t sequence_number);
 			SequenceNumber(const SequenceNumber& other);
+
+			bool operator==(const SequenceNumber& other) const;
+            bool operator>(const SequenceNumber& other) const;
+            bool operator<(const SequenceNumber& other) const;
 			
 			uint8_t get() const;
 			

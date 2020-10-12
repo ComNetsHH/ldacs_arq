@@ -25,7 +25,7 @@ namespace TUHH_INTAIRNET_ARQ {
 			 *
 			 * @param seqno Sequence number of next segment expected at the sender of this segment.
 			 */
-			void SetSeqnoNextExpected(SequenceNumber seqno);
+			void setSeqnoNextExpected(SequenceNumber seqno);
 			
 			/**
 			 *

@@ -10,7 +10,7 @@ void TUHH_INTAIRNET_ARQ::L2SegmentHeader::setSeqno(TUHH_INTAIRNET_ARQ::SequenceN
 	this->seqno = seqno;
 }
 
-void TUHH_INTAIRNET_ARQ::L2SegmentHeader::SetSeqnoNextExpected(TUHH_INTAIRNET_ARQ::SequenceNumber seqno) {
+void TUHH_INTAIRNET_ARQ::L2SegmentHeader::setSeqnoNextExpected(TUHH_INTAIRNET_ARQ::SequenceNumber seqno) {
 	this->seqno_next_expected = seqno;
 }
 

@@ -23,3 +23,15 @@ void TUHH_INTAIRNET_ARQ::SequenceNumber::increment() {
 	if (this->get() == SEQNO_UNSET)
 		this->increment();
 }
+
+bool TUHH_INTAIRNET_ARQ::SequenceNumber::operator==(const SequenceNumber &other) const {
+    return other.get() == this->get();
+}
+
+bool TUHH_INTAIRNET_ARQ::SequenceNumber::operator>(const SequenceNumber &other) const {
+    return this->get() > other.get();
+}
+
+bool TUHH_INTAIRNET_ARQ::SequenceNumber::operator<(const SequenceNumber &other) const {
+    return this->get() < other.get();
+}
