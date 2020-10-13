@@ -44,6 +44,23 @@ uint64_t TUHH_INTAIRNET_ARQ::L2SegmentHeader::getSize() const {
 	return 3 + this->srej_list_length;
 }
 
+MacAddress TUHH_INTAIRNET_ARQ::L2SegmentHeader::getSrcAddress() {
+    return this->srcAddress;
+}
+
+MacAddress TUHH_INTAIRNET_ARQ::L2SegmentHeader::getDestAddress() {
+    return this->destAddress;
+}
+
+void TUHH_INTAIRNET_ARQ::L2SegmentHeader::setSrcAddress(MacAddress address) {
+    this->srcAddress = address;
+}
+
+void TUHH_INTAIRNET_ARQ::L2SegmentHeader::setDestAddress(MacAddress address) {
+    this->destAddress = address;
+}
+
+
 
 
 

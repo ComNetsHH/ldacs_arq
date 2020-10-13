@@ -1,16 +1,10 @@
 #include <cppunit/ui/text/TestRunner.h>
-#include <cppunit/TestCase.h>
-#include <cppunit/TestFixture.h>
-#include <cppunit/ui/text/TextTestRunner.h>
-#include <cppunit/extensions/HelperMacros.h>
-#include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/TestResult.h>
 #include <cppunit/TestResultCollector.h>
-#include <cppunit/TestRunner.h>
 #include <cppunit/BriefTestProgressListener.h>
 #include <cppunit/CompilerOutputter.h>
-#include <cppunit/XmlOutputter.h>
-#include "ArqTests.cpp"
+#include "SelectiveRepeatArqTest.cpp"
+#include "SelectiveRepeatArqProcessTest.cpp"
 #include "SequenceNumberTests.cpp"
 #include "L2SegmentHeaderTest.cpp"
 
@@ -25,7 +19,8 @@ int main(int argc, const char* argv[]) {
     result.addListener (&collectedResults);
     result.addListener (&progress);
 
-	runner.addTest(ArqTests::suite());
+    runner.addTest(SelectiveRepeatArqTest::suite());
+    runner.addTest(SelectiveRepeatArqProcessTest::suite());
     runner.addTest(SequenceNumberTests::suite());
     runner.addTest(L2SegmentHeaderTest::suite());
 	runner.run(result);

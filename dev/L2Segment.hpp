@@ -8,25 +8,28 @@
 #include "L2SegmentHeader.hpp"
 
 namespace TUHH_INTAIRNET_ARQ {
-	class L2Segment {
-		public:
-			class Payload {
-					virtual uint64_t getSize() const = 0;
-			};
-			
-			L2Segment();
-			L2Segment(const L2Segment& other);
-			
-			L2Segment copy() const;
-			
-			L2SegmentHeader& getHeader();
-			
-			Payload* getPayload();
-		
-		protected:
-			L2SegmentHeader header;
-			Payload* payload;
-	};
+    class L2Segment {
+    public:
+        class Payload {
+            virtual uint64_t getSize() const = 0;
+        };
+
+        L2Segment();
+
+        L2Segment(const L2Segment &other);
+
+        L2Segment(L2SegmentHeader header);
+
+        L2Segment copy() const;
+
+        const L2SegmentHeader &getHeader() const;
+
+        Payload *getPayload();
+
+    protected:
+        L2SegmentHeader header;
+        Payload *payload;
+    };
 }
 
 

@@ -6,27 +6,48 @@
 #include <cstdint>
 #include <stdexcept>
 
-TUHH_INTAIRNET_ARQ::SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size)
-	: resend_timeout(resend_timeout), window_size(window_size), list_sentUnacked(), list_rtx(), list_toAck(), sending_buffer(), list_rcvdOutOfSeq(), received_segments(), received_acks(), sent_segments(), sent_and_acked_segments(), sent_acks() {
-	
+using namespace TUHH_INTAIRNET_ARQ;
+
+SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size)
+        : resend_timeout(resend_timeout), window_size(window_size) {
 }
 
-bool TUHH_INTAIRNET_ARQ::SelectiveRepeatArq::isInRtxState() const {
-	return !this->list_rtx.empty();
+bool SelectiveRepeatArq::isInRtxState() const {
+    return false;
 }
 
-void TUHH_INTAIRNET_ARQ::SelectiveRepeatArq::receiveFromUpperLayer(const TUHH_INTAIRNET_ARQ::L2Segment& segment) {
-	throw std::logic_error("not implemented");
+B SelectiveRepeatArq::getBufferStatus() {
+    throw std::logic_error("not implemented");
 }
 
-void TUHH_INTAIRNET_ARQ::SelectiveRepeatArq::receiveFromLowerLayer(const TUHH_INTAIRNET_ARQ::L2Segment& segment) {
-	throw std::logic_error("not implemented");
+SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacAddress address) {
+    auto it = arqProcesses.find(address);
+    if (it != arqProcesses.end()) {
+        return it->second;
+    }
+    return nullptr;
 }
 
-void TUHH_INTAIRNET_ARQ::SelectiveRepeatArq::processData(const TUHH_INTAIRNET_ARQ::L2Segment& segment) {
-	throw std::logic_error("not implemented");
+void SelectiveRepeatArq::receiveFromLowerLayer(const L2Segment &segment) {
+    auto header = segment.getHeader();
+    MacAddress srcAddress = header.getSrcAddress();
+    auto process = getArqProcess(srcAddress);
+    if (!process) {
+        process = new SelectiveRepeatArqProcess(srcAddress);
+        arqProcesses.insert(make_pair(srcAddress, process));
+    }
+
+    process->addSegment(segment);
+    auto inOrderSegments = process->getInOrderSegments();
+    for(auto const& inOrderSegment: inOrderSegments) {
+        this->passToUpperLayer(inOrderSegment);
+    }
 }
 
-void TUHH_INTAIRNET_ARQ::SelectiveRepeatArq::processAck(const TUHH_INTAIRNET_ARQ::L2Segment& segment) {
-	throw std::logic_error("not implemented");
+void SelectiveRepeatArq::passToUpperLayer(const L2Segment &segment) {
+
+}
+
+int SelectiveRepeatArq::getNumProcesses() {
+    return arqProcesses.size();
 }
