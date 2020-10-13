@@ -56,7 +56,7 @@
 		\end{minipage}
 		\begin{minipage}[h][6em][b]{0.54\textwidth}
 			\begin{flushright}
-				\textbf{Contributors:}\\\mbox{Sebastian Lindner, M.Sc.}\\\mbox{}\\
+				\textbf{Contributors:}\\\mbox{Sebastian Lindner, M.Sc.}\\\mbox{Konrad Fuger, M.Sc.}\\
 \mbox{}\\
 \mbox{}
 			\end{flushright}
@@ -93,7 +93,20 @@
 	\pagenumbering{arabic}
 	
 	\section{Introduction}
+	To establish reliable communication between IntAirNet hosts, an \ac{arq} protocol is used. 
+	The following provides a specification od the protocol as well as the documentation of the implementation in the simulator.
+
 	\subsection{Description}
+	To obtain maximal channel utilization, the IntAirNet \ac{arq} is a version of selective repeat \ac{arq} and therefore aims to only retransmit segments which are explicitly not received.
+	To do so, the \ac{arq} protocol uses cumulative \acp{ack} as well a selective rejection list to indicate \ac{nack} of segments which have not been received.
+
+	\subsection{Architecture}
+	The \ac{arq} is a link layer sublayer which resides between the \ac{mac} and the \ac{rlc} layer.
+	Every transmission is initiated by the \ac{mac} layer.
+	For this purpose the \ac{mac} layer monitors the buffer status of both \ac{rlc} and \ac{arq} layer and establishes transmission oppurtunities accordingly.
+	Whenever a transmssion oppurtunity arrives, the \ac{mac} layer will request a segment from \ac{arq} layer which will either return an unacknowledged segment for retransmission or in turn request a new segment from the \ac{rlc} layer.
+
+
 	\subsection{Header Fields}\label{sec:arq_header}
 		The following header fields are required for the operation of the \ac{arq} protocol.		
 		
@@ -132,7 +145,7 @@
 			
 			\item[\srejr{}] List of segments that were detected as missing but not yet requested.
 			
-			\item[\srejw{}] List of segments that were detected as missing and requested but could bet be \ac{ack}'d yet.
+			\item[\srejw{}] List of segments that were detected as missing and requested but could not be \ac{ack}'d yet.
 			
 			\item[\rtx{}] List of segments that are currently required to be retransmitted.
 		\end{description}
