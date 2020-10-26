@@ -9,7 +9,6 @@
 #include <iostream>
 
 #include "../L2SegmentHeader.hpp"
-#include "../SequenceNumber.hpp"
 
 using namespace TUHH_INTAIRNET_ARQ;
 using namespace std;

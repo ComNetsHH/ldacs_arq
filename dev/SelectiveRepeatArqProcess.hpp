@@ -16,10 +16,9 @@ using namespace std;
 namespace TUHH_INTAIRNET_ARQ {
     class SelectiveRepeatArqProcess {
     protected:
-        SequenceNumber sequenceNumber;
-        list<L2Segment> outOfOrderSegments;
         MacAddress destAddress;
-
+        /** The sequence number that was last passed up to the upper layer. */
+        SequenceNumber seqno_lastPassedUp = SequenceNumber(SEQNO_UNSET);
         /** The sequence number that will be assigned to the next newly sent segment. */
         SequenceNumber seqno_nextToSend = SequenceNumber(SEQNO_FIRST);
         /** The sequence number that is expected to arrive next. */
@@ -28,6 +27,8 @@ namespace TUHH_INTAIRNET_ARQ {
         SequenceNumber seqno_lastAcked = SequenceNumber(SEQNO_FIRST);
         /** List of segments that were sent and were not acknowledged yet. */
         std::list<L2Segment> list_sentUnacked;
+        /** List of segments that were sent and were not acknowledged yet. */
+        list<L2Segment> list_toPassUp;
         /** List of segments that should be retransmitted. */
         std::list<L2Segment> list_rtx;
         /** List of segments that should be acknowledged. */

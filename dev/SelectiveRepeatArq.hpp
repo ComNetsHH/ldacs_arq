@@ -36,6 +36,9 @@ namespace TUHH_INTAIRNET_ARQ {
 
         int getNumProcesses();
 
+        /** Function to request a segment for a given MacAddress which is currenlty scheduled to be sent to **/
+        L2Segment* getSegment(MacAddress address);
+
     protected:
         /** Time until an unacknowledged segment is scheduled for retransmission. */
         uint8_t resend_timeout;

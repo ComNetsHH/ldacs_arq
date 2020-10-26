@@ -4,7 +4,13 @@
 
 #include "L2SegmentHeader.hpp"
 
-TUHH_INTAIRNET_ARQ::L2SegmentHeader::L2SegmentHeader() : seqno(), seqno_next_expected(), srej_list_length(0), poll(0) {}
+TUHH_INTAIRNET_ARQ::L2SegmentHeader::L2SegmentHeader() {
+
+}
+
+TUHH_INTAIRNET_ARQ::L2SegmentHeader::L2SegmentHeader(SequenceNumber seqno) {
+    this->seqno = seqno;
+}
 
 void TUHH_INTAIRNET_ARQ::L2SegmentHeader::setSeqno(TUHH_INTAIRNET_ARQ::SequenceNumber seqno) {
 	this->seqno = seqno;

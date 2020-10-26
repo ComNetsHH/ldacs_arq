@@ -12,7 +12,7 @@ TUHH_INTAIRNET_ARQ::L2Segment TUHH_INTAIRNET_ARQ::L2Segment::copy() const {
 	return L2Segment(*this);
 }
 
-TUHH_INTAIRNET_ARQ::L2Segment::L2Segment(L2SegmentHeader header) {
+TUHH_INTAIRNET_ARQ::L2Segment::L2Segment(L2SegmentHeader header) : header(TUHH_INTAIRNET_ARQ::SequenceNumber()) {
     this->header = header;
 }
 

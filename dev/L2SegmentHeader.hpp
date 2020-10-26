@@ -15,6 +15,7 @@ namespace TUHH_INTAIRNET_ARQ {
     class L2SegmentHeader {
     public:
         L2SegmentHeader();
+        L2SegmentHeader(SequenceNumber seqNo);
 
         /**
          * Set the destAddress field

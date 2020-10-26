@@ -12,7 +12,7 @@ class SelectiveRepeatArqTest : public CppUnit::TestFixture {
 public:
 	void addSegmentSimple() {
         SelectiveRepeatArq arq = SelectiveRepeatArq(100, 100);
-        L2SegmentHeader header = L2SegmentHeader();
+        L2SegmentHeader header = L2SegmentHeader(SequenceNumber());
         header.setSrcAddress(MacAddress(1));
         L2Segment segment = L2Segment(header);
 
@@ -20,7 +20,7 @@ public:
 
         CPPUNIT_ASSERT_EQUAL(arq.getNumProcesses(), 1);
 
-        L2SegmentHeader header2 = L2SegmentHeader();
+        L2SegmentHeader header2 = L2SegmentHeader(SequenceNumber());
         header.setSrcAddress(MacAddress(2));
         L2Segment segment2 = L2Segment(header);
 

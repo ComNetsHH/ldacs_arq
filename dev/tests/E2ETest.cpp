@@ -6,30 +6,16 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include "../L2Segment.hpp"
 #include "../SelectiveRepeatArq.hpp"
+#include "mock/MockHost.h"
 
 using namespace TUHH_INTAIRNET_ARQ;
-
-class SimulationKernel {
-public:
-    SelectiveRepeatArq sender;
-    SelectiveRepeatArq receiver;
-
-/*    SimulationKernel(SelectiveRepeatArq sender, SelectiveRepeatArq receiver) {
-        this->sender = sender;
-        this->receiver = receiver;
-    }*/
-
-    void run() {
-        //L2Segment this.sender.getSegment();
-    }
-
-};
 
 class E2ETest : public CppUnit::TestFixture {
 public:
     void e2e() {
-
-        // intsantiate
+        Channel *channel = new Channel;
+        MockHost sender(1, channel);
+        MockHost receiver(2, channel);
 
     }
 
