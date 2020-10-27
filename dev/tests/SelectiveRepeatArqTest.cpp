@@ -14,17 +14,17 @@ public:
         SelectiveRepeatArq arq = SelectiveRepeatArq(100, 100);
         L2SegmentHeader header = L2SegmentHeader(SequenceNumber());
         header.setSrcAddress(MacAddress(1));
-        L2Segment segment = L2Segment(header);
+        L2Segment segment = L2Segment(&header);
 
-        arq.receiveFromLowerLayer(segment);
+        arq.receiveFromLowerLayer(&segment);
 
         CPPUNIT_ASSERT_EQUAL(arq.getNumProcesses(), 1);
 
         L2SegmentHeader header2 = L2SegmentHeader(SequenceNumber());
         header.setSrcAddress(MacAddress(2));
-        L2Segment segment2 = L2Segment(header);
+        L2Segment segment2 = L2Segment(&header);
 
-        arq.receiveFromLowerLayer(segment2);
+        arq.receiveFromLowerLayer(&segment2);
 
         CPPUNIT_ASSERT_EQUAL(arq.getNumProcesses(), 2);
 	}

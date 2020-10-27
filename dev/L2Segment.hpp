@@ -18,16 +18,16 @@ namespace TUHH_INTAIRNET_ARQ {
 
         L2Segment(const L2Segment &other);
 
-        L2Segment(L2SegmentHeader header);
+        L2Segment(L2SegmentHeader *header);
 
         L2Segment copy() const;
 
-        const L2SegmentHeader &getHeader() const;
+        L2SegmentHeader* getHeader();
 
         Payload *getPayload();
 
     protected:
-        L2SegmentHeader header;
+        L2SegmentHeader *header;
         Payload *payload;
     };
 }

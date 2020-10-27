@@ -27,7 +27,7 @@ namespace TUHH_INTAIRNET_ARQ {
         B getBufferStatus();
 
         /** Handle a segment from MAC layer **/
-        void receiveFromLowerLayer(const L2Segment &segment);
+        void receiveFromLowerLayer(L2Segment *segment);
 
         /** Returns true if any of the ArqProcesses has data to retransmit **/
         bool isInRtxState() const;
@@ -48,7 +48,7 @@ namespace TUHH_INTAIRNET_ARQ {
         map<MacAddress, SelectiveRepeatArqProcess *> arqProcesses;
 
         /** Send a segment up to rlc layer **/
-        void passToUpperLayer(const L2Segment &segment);
+        void passToUpperLayer(L2Segment *segment);
 
         /** Clean all stale state **/
         void cleanUp();

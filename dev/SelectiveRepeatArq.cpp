@@ -28,23 +28,23 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacAddress address)
     return nullptr;
 }
 
-void SelectiveRepeatArq::receiveFromLowerLayer(const L2Segment &segment) {
-    auto header = segment.getHeader();
-    MacAddress srcAddress = header.getSrcAddress();
+void SelectiveRepeatArq::receiveFromLowerLayer(L2Segment *segment) {
+    auto header = segment->getHeader();
+    MacAddress srcAddress = header->getSrcAddress();
     auto process = getArqProcess(srcAddress);
     if (!process) {
         process = new SelectiveRepeatArqProcess(srcAddress);
         arqProcesses.insert(make_pair(srcAddress, process));
     }
 
-    process->addSegment(segment);
+    process->processLowerLayerSegment(segment);
     auto inOrderSegments = process->getInOrderSegments();
     for(auto const& inOrderSegment: inOrderSegments) {
         this->passToUpperLayer(inOrderSegment);
     }
 }
 
-void SelectiveRepeatArq::passToUpperLayer(const L2Segment &segment) {
+void SelectiveRepeatArq::passToUpperLayer(L2Segment *segment) {
 
 }
 
