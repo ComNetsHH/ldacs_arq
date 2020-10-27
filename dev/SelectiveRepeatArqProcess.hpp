@@ -16,28 +16,39 @@ using namespace std;
 namespace TUHH_INTAIRNET_ARQ {
     class SelectiveRepeatArqProcess {
     protected:
+        /** Mac address of the communication of this process **/
         MacAddress remoteAddress;
+
         /** The sequence number that was last passed up to the upper layer. */
         SequenceNumber seqno_lastPassedUp = SequenceNumber(SEQNO_UNSET);
+
         /** The sequence number that will be assigned to the next newly sent segment. */
         SequenceNumber seqno_nextToSend = SequenceNumber(SEQNO_FIRST);
+
         /** The sequence number that is expected to arrive next. */
         SequenceNumber seqno_nextExpected = SequenceNumber(SEQNO_FIRST);
-        /** The sequence number of the last-acknowledged segment. */
-        SequenceNumber seqno_lastAcked = SequenceNumber(SEQNO_FIRST);
+
+        /** UNUSED: The sequence number of the last-acknowledged segment. */
+        //SequenceNumber seqno_lastAcked = SequenceNumber(SEQNO_FIRST);
+
         /** List of segments that were sent and were not acknowledged yet. */
         std::list<L2Segment*> list_sentUnacked;
-        /** List of segments that were sent and were not acknowledged yet. */
+
+        /** List of segments that should be passed up to the higher layer */
         list<L2Segment*> list_toPassUp;
+
         /** List of segments that should be retransmitted. */
         std::list<L2Segment*> list_rtx;
+
         /** List of segments that should be acknowledged. */
         std::list<L2Segment*> list_toAck;
-        /** Queue of segments to send. */
-        std::queue<L2Segment*> sending_buffer;
+
+        /** UNUSED: Queue of segments to send. */
+        //std::queue<L2Segment*> sending_buffer;
+
         /** List of received out-of-order segments. */
         std::list<L2Segment*> list_rcvdOutOfSeq;
-        // out of sequence ACKs shouldn't be necessary?
+
         /** For logging purposes. */
         std::vector<SequenceNumber> received_segments, received_acks, sent_segments, sent_and_acked_segments, sent_acks;
         bool should_send_now = false;
@@ -58,6 +69,8 @@ namespace TUHH_INTAIRNET_ARQ {
 
         /** Receive all in order Segments **/
         vector<L2Segment*> getInOrderSegments();
+
+        vector<SequenceNumber> getSrejList();
 
         bool hasRtxSegment(B size);
         L2Segment* getRtxSegment(B size);

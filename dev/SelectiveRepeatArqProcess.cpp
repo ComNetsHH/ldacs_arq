@@ -76,7 +76,8 @@ L2Segment* SelectiveRepeatArqProcess::getRtxSegment(B size) {
 void SelectiveRepeatArqProcess::processUpperLayerSegment(L2Segment *segment) {
     L2SegmentHeader* header = segment->getHeader();
     header->setSeqno(seqno_nextToSend);
+    header->setSeqnoNextExpected(seqno_nextExpected);
+    header->setSrejList(getSrejList());
     seqno_nextToSend.increment();
     list_sentUnacked.push_back(segment);
-    //segment->getHeader()->setSeqno(SequenceNumber(2));
 }
