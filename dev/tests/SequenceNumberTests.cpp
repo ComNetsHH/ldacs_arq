@@ -40,6 +40,8 @@ public:
         CPPUNIT_ASSERT(seqno5.isHigherThan(seqno1, windowSize));
         CPPUNIT_ASSERT(!seqno6.isHigherThan(seqno1, windowSize));
         CPPUNIT_ASSERT(seqno4.isLowerThan(seqno1, windowSize));
+        CPPUNIT_ASSERT(seqno1.isLowerThanEqual(seqno1, windowSize));
+        CPPUNIT_ASSERT(!seqno1.isLowerThan(seqno1, windowSize));
     }
 
     void testArithmetic() {

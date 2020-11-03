@@ -29,6 +29,8 @@ namespace TUHH_INTAIRNET_ARQ {
 
         bool isLowerThan(SequenceNumber other, uint8_t windowSize);
 
+        bool isLowerThanEqual(SequenceNumber other, uint8_t windowSize);
+
         uint8_t get() const;
 
         void increment();

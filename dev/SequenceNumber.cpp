@@ -90,3 +90,7 @@ bool SequenceNumber::isHigherThan(SequenceNumber other, uint8_t windowSize) {
 bool SequenceNumber::isLowerThan(SequenceNumber other, uint8_t windowSize) {
     return other.isHigherThan(*this, windowSize);
 }
+
+bool SequenceNumber::isLowerThanEqual(SequenceNumber other, uint8_t windowSize) {
+    return isLowerThan(other, windowSize) || *this == other;
+}

@@ -44,12 +44,6 @@ namespace TUHH_INTAIRNET_ARQ {
         /** List of segments that should be retransmitted. */
         std::list<L2Segment*> list_rtx;
 
-        /** List of segments that should be acknowledged. */
-        std::list<L2Segment*> list_toAck;
-
-        /** UNUSED: Queue of segments to send. */
-        //std::queue<L2Segment*> sending_buffer;
-
         /** List of received out-of-order segments. */
         std::list<L2Segment*> list_rcvdOutOfSeq;
 

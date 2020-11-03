@@ -27,7 +27,7 @@ vector<L2Segment *> SelectiveRepeatArqProcess::getInOrderSegments() {
 void SelectiveRepeatArqProcess::processAck(L2Segment *segment) {
     L2SegmentHeader *header = segment->getHeader();
     SequenceNumber nextExpected = header->getSeqnoNextExpected();
-    if (seqno_nextExpected.get() >= nextExpected.get()) {
+    if (seqno_nextExpected.isHigherThan(nextExpected, window_size)) {
         // This ack must be old as it acks an old sequence number.
         return;
     }
@@ -38,19 +38,19 @@ void SelectiveRepeatArqProcess::processAck(L2Segment *segment) {
 void SelectiveRepeatArqProcess::processLowerLayerSegment(L2Segment *segment) {
     processAck(segment);
     SequenceNumber seqNo = segment->getHeader()->getSeqno();
-    if (seqno_nextExpected.get() <= seqNo.get()) {
+    if (seqno_nextExpected.isLowerThan(seqNo, window_size)) {
         seqno_nextExpected = SequenceNumber(seqNo.get() + 1);
     }
-    list_toAck.push_back(segment);
+    //list_toAck.push_back(segment);
     //received_segments.push_back(seqNo);
 
-    if (seqNo.get() == seqno_lastPassedUp.get() + 1) {
+    if (seqNo == seqno_lastPassedUp + 1) {
         list_toPassUp.push_back(segment);
         seqno_lastPassedUp.increment();
 
         for (auto it = list_rcvdOutOfSeq.begin(); it != list_rcvdOutOfSeq.end(); it++) {
             seqNo = (*it)->getHeader()->getSeqno();
-            if (seqNo.get() == seqno_lastPassedUp.get() + 1) {
+            if (seqNo == seqno_lastPassedUp + 1) {
                 list_toPassUp.push_back(*it);
                 seqno_lastPassedUp.increment();
                 list_rcvdOutOfSeq.erase(it);
@@ -59,9 +59,9 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(L2Segment *segment) {
     } else {
         list_rcvdOutOfSeq.push_back(segment);
         list_rcvdOutOfSeq.sort([this](L2Segment *s1, L2Segment *s2) {
-            auto h1 = s1->getHeader()->getSeqno();
-            auto h2 = s2->getHeader()->getSeqno();
-            return h1.isLowerThan(h2, window_size);
+            auto seqNo1 = s1->getHeader()->getSeqno();
+            auto seqNo2 = s2->getHeader()->getSeqno();
+            return seqNo1.isLowerThan(seqNo2, window_size);
         });
     }
 }
@@ -97,15 +97,9 @@ void SelectiveRepeatArqProcess::processUpperLayerSegment(L2Segment *segment) {
 
 vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
     vector<SequenceNumber> list;
+    SequenceNumber seqNo(seqno_lastPassedUp +1);
 
-    //SequenceNumber seqNo(seqno_nextExpected.get() - window_size);
-    SequenceNumber seqNo(1);
-
-    while (seqNo.get() < seqno_nextExpected.get() - 1) {
-        if (seqNo.get() <= seqno_lastPassedUp.get()) {
-            seqNo.increment();
-            continue;
-        }
+    while (seqNo.isLowerThan(seqno_nextExpected -1, window_size )) {
         if (wasReceivedOutOfOrder(seqNo)) {
             seqNo.increment();
             continue;
@@ -113,9 +107,5 @@ vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
         list.push_back(seqNo);
         seqNo.increment();
     }
-
-    // start from nextExpected - window
-    // loop through all seqNo
-    // if not received, add to list
     return list;
 }
