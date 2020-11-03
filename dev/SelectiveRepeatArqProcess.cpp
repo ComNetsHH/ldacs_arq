@@ -8,8 +8,10 @@
 using namespace TUHH_INTAIRNET_ARQ;
 using namespace std;
 
-SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacAddress remoteAddress) {
+SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacAddress remoteAddress, uint8_t resend_timeout, uint8_t window_size) {
     this->remoteAddress = remoteAddress;
+    this->resend_timeout = resend_timeout;
+    this->window_size = window_size;
 }
 
 vector<L2Segment*> SelectiveRepeatArqProcess::getInOrderSegments() {
@@ -29,7 +31,7 @@ void SelectiveRepeatArqProcess::processAck(L2Segment *segment) {
         return;
     }
     // set next expected to new value
-    // delete all segments which are implizitly acked
+    // delete all segments which are implicitly acked
 }
 
 void SelectiveRepeatArqProcess::processLowerLayerSegment(L2Segment *segment) {
@@ -39,7 +41,7 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(L2Segment *segment) {
         seqno_nextExpected = SequenceNumber(seqNo.get() +1);
     }
     list_toAck.push_back(segment);
-    received_segments.push_back(seqNo);
+    //received_segments.push_back(seqNo);
 
     if (seqNo.get() == seqno_lastPassedUp.get() + 1) {
         list_toPassUp.push_back(segment);
@@ -67,6 +69,16 @@ bool SelectiveRepeatArqProcess::hasRtxSegment(B size) {
     return !list_rtx.empty();
 }
 
+bool SelectiveRepeatArqProcess::wasReceivedOutOfOrder(SequenceNumber seqNo) {
+    for(auto it = list_rcvdOutOfSeq.begin(); it != list_rcvdOutOfSeq.end(); it++) {
+        SequenceNumber outOfOrderSeqNo = (*it)->getHeader()->getSeqno();
+        if(outOfOrderSeqNo == seqNo) {
+            return true;
+        }
+    }
+    return false;
+}
+
 L2Segment* SelectiveRepeatArqProcess::getRtxSegment(B size) {
     L2Segment *segment = list_rtx.front();
     this->list_rtx.pop_front();
@@ -80,4 +92,29 @@ void SelectiveRepeatArqProcess::processUpperLayerSegment(L2Segment *segment) {
     header->setSrejList(getSrejList());
     seqno_nextToSend.increment();
     list_sentUnacked.push_back(segment);
+}
+
+vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
+    vector<SequenceNumber> list;
+
+    //SequenceNumber seqNo(seqno_nextExpected.get() - window_size);
+    SequenceNumber seqNo(1);
+
+    while(seqNo.get() < seqno_nextExpected.get()-1) {
+        if(seqNo.get() <= seqno_lastPassedUp.get()) {
+            seqNo.increment();
+            continue;
+        }
+        if(wasReceivedOutOfOrder(seqNo)) {
+            seqNo.increment();
+            continue;
+        }
+        list.push_back(seqNo);
+        seqNo.increment();
+    }
+
+    // start from nextExpected - window
+    // loop through all seqNo
+    // if not received, add to list
+    return list;
 }

@@ -42,8 +42,10 @@ namespace TUHH_INTAIRNET_ARQ {
     protected:
         /** Time until an unacknowledged segment is scheduled for retransmission. */
         uint8_t resend_timeout;
+
         /** Window size. */
         uint64_t window_size;
+
         /** ArqProcesses for each communication partner **/
         map<MacAddress, SelectiveRepeatArqProcess *> arqProcesses;
 

@@ -76,7 +76,7 @@ public:
         CPPUNIT_ASSERT_EQUAL(3, (int) segments.size());
     }
 
-    void testHasSegment() {
+    void testHasRtxSegment() {
         SelectiveRepeatArqProcess process(1);
         CPPUNIT_ASSERT(!process.hasRtxSegment(10));
     }
@@ -87,13 +87,45 @@ public:
         SelectiveRepeatArqProcess process(1);
         process.processUpperLayerSegment(segment);
         CPPUNIT_ASSERT_EQUAL(1, (int) header.getSeqno().get());
+        process.processUpperLayerSegment(segment);
+        CPPUNIT_ASSERT_EQUAL(2, (int) header.getSeqno().get());
+    }
+
+
+    void testSelectiveRejection() {
+        // Add three segments out of order (3,2,1)
+        SequenceNumber seqNo(SequenceNumber(3));
+        L2SegmentHeader *h1 = new L2SegmentHeader(seqNo);
+        L2Segment s1(h1);
+        SelectiveRepeatArqProcess process(1);
+        process.processLowerLayerSegment(&s1);
+
+        auto selectiveRejections = process.getSrejList();
+        CPPUNIT_ASSERT_EQUAL(2, (int) selectiveRejections.size());
+
+        SequenceNumber seqNo2(SequenceNumber(2));
+        L2SegmentHeader *h2 = new L2SegmentHeader(seqNo2);
+        L2Segment s2(h2);
+        process.processLowerLayerSegment(&s2);
+
+        selectiveRejections = process.getSrejList();
+        CPPUNIT_ASSERT_EQUAL(1, (int) selectiveRejections.size());
+
+        SequenceNumber seqNo3(SequenceNumber(1));
+        L2SegmentHeader *h3 = new L2SegmentHeader(seqNo3);
+        L2Segment s3(h3);
+        process.processLowerLayerSegment(&s3);
+
+        selectiveRejections = process.getSrejList();
+        CPPUNIT_ASSERT_EQUAL(0, (int) selectiveRejections.size());
     }
 
 CPPUNIT_TEST_SUITE(SelectiveRepeatArqProcessTest);
         CPPUNIT_TEST(addSegmentInOrder);
         CPPUNIT_TEST(addSegmentOutOfOrder);
         CPPUNIT_TEST(addSeveralSegmentsOutOfOrder);
-        CPPUNIT_TEST(testHasSegment);
+        CPPUNIT_TEST(testHasRtxSegment);
         CPPUNIT_TEST(testAddSegmentFromUpperLayer);
+        CPPUNIT_TEST(testSelectiveRejection);
     CPPUNIT_TEST_SUITE_END();
 };

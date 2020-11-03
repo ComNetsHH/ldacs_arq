@@ -19,6 +19,10 @@ namespace TUHH_INTAIRNET_ARQ {
         /** Mac address of the communication of this process **/
         MacAddress remoteAddress;
 
+        uint8_t resend_timeout;
+
+        uint8_t window_size;
+
         /** The sequence number that was last passed up to the upper layer. */
         SequenceNumber seqno_lastPassedUp = SequenceNumber(SEQNO_UNSET);
 
@@ -55,8 +59,11 @@ namespace TUHH_INTAIRNET_ARQ {
 
         void processAck(L2Segment *segment);
 
+        bool wasReceivedOutOfOrder(SequenceNumber seqNo);
+
     public:
-        SelectiveRepeatArqProcess(MacAddress remoteAddress);
+        /** Standard constructor **/
+        SelectiveRepeatArqProcess(MacAddress remoteAddress, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
 
         /** If a ARQ process has no internal state anymore, it can be deleted **/
         bool isStale();
