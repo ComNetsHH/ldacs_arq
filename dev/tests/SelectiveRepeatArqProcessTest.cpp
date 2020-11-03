@@ -15,7 +15,7 @@ public:
     void addSegmentInOrder() {
         // Add a single segment in order
         SequenceNumber seqNo(SEQNO_FIRST);
-        L2SegmentHeader* h1 = new L2SegmentHeader(seqNo);
+        L2SegmentHeader *h1 = new L2SegmentHeader(seqNo);
         L2Segment s1(h1);
         SelectiveRepeatArqProcess process(1);
         process.processLowerLayerSegment(&s1);
@@ -98,7 +98,9 @@ public:
         L2SegmentHeader *h1 = new L2SegmentHeader(seqNo);
         L2Segment s1(h1);
         SelectiveRepeatArqProcess process(1);
+
         process.processLowerLayerSegment(&s1);
+
 
         auto selectiveRejections = process.getSrejList();
         CPPUNIT_ASSERT_EQUAL(2, (int) selectiveRejections.size());
