@@ -27,10 +27,33 @@ vector<L2Segment *> SelectiveRepeatArqProcess::getInOrderSegments() {
 void SelectiveRepeatArqProcess::processAck(L2Segment *segment) {
     L2SegmentHeader *header = segment->getHeader();
     SequenceNumber nextExpected = header->getSeqnoNextExpected();
+    vector<SequenceNumber> srej = header->getSrejList();
     if (seqno_nextExpected.isHigherThan(nextExpected, window_size)) {
         // This ack must be old as it acks an old sequence number.
         return;
     }
+
+    for(auto it = list_sentUnacked.begin(); it != list_sentUnacked.end(); it++) {
+        auto unackedSeqNo = (*it)->getHeader()->getSeqno();
+        bool isInSrej = false;
+        // if in srej, put in rtx list and delete
+        for(auto it2 = srej.begin(); it2 != srej.end(); it2++) {
+            if(unackedSeqNo == *it2) {
+                isInSrej = true;
+            }
+        }
+
+        if(isInSrej) {
+            list_rtx.push_back(*it);
+            list_sentUnacked.erase(it);
+            continue;
+        } else if(unackedSeqNo.isLowerThan(nextExpected, window_size)){
+            list_sentUnacked.erase(it);
+            continue;
+        }
+
+    }
+
     // set next expected to new value
     // delete all segments which are implicitly acked
 }
@@ -41,8 +64,6 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(L2Segment *segment) {
     if (seqno_nextExpected.isLowerThan(seqNo, window_size)) {
         seqno_nextExpected = SequenceNumber(seqNo.get() + 1);
     }
-    // list_toAck.push_back(segment);
-    // received_segments.push_back(seqNo);
 
     if (seqNo == seqno_lastPassedUp + 1) {
         list_toPassUp.push_back(segment);

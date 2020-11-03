@@ -122,6 +122,41 @@ public:
         CPPUNIT_ASSERT_EQUAL(0, (int) selectiveRejections.size());
     }
 
+    void handlesAck() {
+        SelectiveRepeatArqProcess process(1);
+        SequenceNumber seqNo1(SEQNO_UNSET);
+        L2SegmentHeader h1(seqNo1);
+        L2Segment s1(&h1);
+        process.processUpperLayerSegment(&s1);
+
+        SequenceNumber seqNo2(SEQNO_UNSET);
+        L2SegmentHeader h2(seqNo1);
+        L2Segment s2(&h2);
+        process.processUpperLayerSegment(&s2);
+
+        SequenceNumber seqNo3(SEQNO_UNSET);
+        L2SegmentHeader h3(seqNo3);
+        L2Segment s3(&h3);
+        process.processUpperLayerSegment(&s3);
+
+        SequenceNumber replySeqNo(SEQNO_UNSET);
+        L2SegmentHeader replyHeader(replySeqNo);
+        replyHeader.setSeqnoNextExpected(SequenceNumber(4));
+        vector<SequenceNumber> srej = {SequenceNumber(2)};
+        replyHeader.setSrejList(srej);
+        L2Segment reply(&replyHeader);
+        process.processLowerLayerSegment(&reply);
+
+        CPPUNIT_ASSERT(process.hasRtxSegment(100));
+
+        L2Segment *rtxSegment = process.getRtxSegment(100);
+        L2SegmentHeader *rtxHeader = rtxSegment->getHeader();
+
+        CPPUNIT_ASSERT(rtxHeader->getSeqno() == h2.getSeqno());
+        CPPUNIT_ASSERT(!process.hasRtxSegment(100));
+
+    }
+
 CPPUNIT_TEST_SUITE(SelectiveRepeatArqProcessTest);
         CPPUNIT_TEST(addSegmentInOrder);
         CPPUNIT_TEST(addSegmentOutOfOrder);
@@ -129,5 +164,6 @@ CPPUNIT_TEST_SUITE(SelectiveRepeatArqProcessTest);
         CPPUNIT_TEST(testHasRtxSegment);
         CPPUNIT_TEST(testAddSegmentFromUpperLayer);
         CPPUNIT_TEST(testSelectiveRejection);
+        CPPUNIT_TEST(handlesAck);
     CPPUNIT_TEST_SUITE_END();
 };
