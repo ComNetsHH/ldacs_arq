@@ -41,8 +41,8 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(L2Segment *segment) {
     if (seqno_nextExpected.isLowerThan(seqNo, window_size)) {
         seqno_nextExpected = SequenceNumber(seqNo.get() + 1);
     }
-    //list_toAck.push_back(segment);
-    //received_segments.push_back(seqNo);
+    // list_toAck.push_back(segment);
+    // received_segments.push_back(seqNo);
 
     if (seqNo == seqno_lastPassedUp + 1) {
         list_toPassUp.push_back(segment);
@@ -97,9 +97,9 @@ void SelectiveRepeatArqProcess::processUpperLayerSegment(L2Segment *segment) {
 
 vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
     vector<SequenceNumber> list;
-    SequenceNumber seqNo(seqno_lastPassedUp +1);
+    SequenceNumber seqNo(seqno_lastPassedUp + 1);
 
-    while (seqNo.isLowerThan(seqno_nextExpected -1, window_size )) {
+    while (seqNo.isLowerThan(seqno_nextExpected - 1, window_size)) {
         if (wasReceivedOutOfOrder(seqNo)) {
             seqNo.increment();
             continue;
