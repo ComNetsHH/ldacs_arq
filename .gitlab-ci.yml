@@ -1,0 +1,13 @@
+build:
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  image: "omnetpp/omnetpp:u18.04-5.5.1"
+  script:
+    - bash build.sh
+
+deploy:
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  script:
+    - apt-get -y install doxygen
+    - doxygen doxy.cfg
+    - aws s3 sync ./docs/html/ s3://avionic-arq-docs-production --delete
