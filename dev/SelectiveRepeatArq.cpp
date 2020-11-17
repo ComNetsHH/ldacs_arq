@@ -38,14 +38,35 @@ void SelectiveRepeatArq::receiveFromLowerLayer(L2Segment *segment) {
     }
 
     process->processLowerLayerSegment(segment);
-    auto inOrderSegments = process->getInOrderSegments();
-    for(auto const& inOrderSegment: inOrderSegments) {
-        this->passToUpperLayer(inOrderSegment);
-    }
 }
 
-void SelectiveRepeatArq::passToUpperLayer(L2Segment *segment) {
+vector<L2Segment *> SelectiveRepeatArq::getInOrderSegments() {
+    vector<L2Segment *> segments;
+    for (auto it = arqProcesses.begin(); it != arqProcesses.end(); it++) {
+        auto process = it->second;
+        auto processSegments = process->getInOrderSegments();
+        for (auto const &inOrderSegment: processSegments) {
+            segments.push_back(inOrderSegment);
+        }
+    }
 
+    return segments;
+}
+
+bool SelectiveRepeatArq::hasRtxSegment(MacAddress address, B size) {
+    auto process = getArqProcess(address);
+    if (!process) {
+        return false;
+    }
+    return process->hasRtxSegment(size);
+}
+
+L2Segment * SelectiveRepeatArq::getRtxSegment(MacAddress address, B size) {
+    auto process = getArqProcess(address);
+    if (!process) {
+        return nullptr;
+    }
+    return process->getRtxSegment(size);
 }
 
 int SelectiveRepeatArq::getNumProcesses() {

@@ -36,9 +36,14 @@ namespace TUHH_INTAIRNET_ARQ {
 
         int getNumProcesses();
 
-        /** Function to request a segment for a given MacAddress which is currenlty scheduled to be sent to **/
-        L2Segment* getSegment(MacAddress address);
+        /** function to query for a rtx segment **/
+        bool hasRtxSegment(MacAddress address, B size);
 
+        /** Function to request a segment for a given MacAddress which is currenlty scheduled to be sent to **/
+        L2Segment* getRtxSegment(MacAddress address, B size);
+
+        /** Get Segments to be passed up **/
+        vector<L2Segment*> getInOrderSegments();
     protected:
         /** Time until an unacknowledged segment is scheduled for retransmission. */
         uint8_t resend_timeout;
@@ -48,9 +53,6 @@ namespace TUHH_INTAIRNET_ARQ {
 
         /** ArqProcesses for each communication partner **/
         map<MacAddress, SelectiveRepeatArqProcess *> arqProcesses;
-
-        /** Send a segment up to rlc layer **/
-        void passToUpperLayer(L2Segment *segment);
 
         /** Clean all stale state **/
         void cleanUp();
