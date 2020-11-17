@@ -11,6 +11,8 @@
 #include "TYPES.h"
 #include "SequenceNumber.hpp"
 
+using namespace TUHH_INTAIRNET_MCSOTDMA;
+
 namespace TUHH_INTAIRNET_ARQ {
     class L2SegmentHeader {
     public:

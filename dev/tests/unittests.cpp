@@ -5,7 +5,6 @@
 #include <cppunit/CompilerOutputter.h>
 #include "SelectiveRepeatArqTest.cpp"
 #include "SelectiveRepeatArqProcessTest.cpp"
-#include "SequenceNumberTests.cpp"
 #include "L2SegmentHeaderTest.cpp"
 
 using namespace std;
@@ -21,7 +20,6 @@ int main(int argc, const char* argv[]) {
 
     runner.addTest(SelectiveRepeatArqTest::suite());
     runner.addTest(SelectiveRepeatArqProcessTest::suite());
-    runner.addTest(SequenceNumberTests::suite());
     runner.addTest(L2SegmentHeaderTest::suite());
 	runner.run(result);
 	return collectedResults.wasSuccessful() ? 0 : 1;
