@@ -8,15 +8,14 @@
 using namespace TUHH_INTAIRNET_ARQ;
 using namespace std;
 
-SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacAddress remoteAddress, uint8_t resend_timeout,
-                                                     uint8_t window_size) {
-    this->remoteAddress = remoteAddress;
+SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId remoteAddress, uint8_t resend_timeout,
+                                                     uint8_t window_size) : remoteAddress(remoteAddress) {
     this->resend_timeout = resend_timeout;
     this->window_size = window_size;
 }
 
-vector<L2Segment *> SelectiveRepeatArqProcess::getInOrderSegments() {
-    vector<L2Segment *> result;
+vector<L2Packet *> SelectiveRepeatArqProcess::getInOrderSegments() {
+    vector<L2Packet *> result;
     for (auto const &segment: list_toPassUp) {
         result.push_back(segment);
     }
@@ -24,8 +23,8 @@ vector<L2Segment *> SelectiveRepeatArqProcess::getInOrderSegments() {
     return result;
 }
 
-void SelectiveRepeatArqProcess::processAck(L2Segment *segment) {
-    L2SegmentHeader *header = segment->getHeader();
+void SelectiveRepeatArqProcess::processAck(L2Packet *segment) {
+    L2HeaderUnicast *header = (L2HeaderUnicast *) segment->getBaseHeader();
     SequenceNumber nextExpected = header->getSeqnoNextExpected();
     vector<SequenceNumber> srej = header->getSrejList();
     if (seqno_nextExpected.isHigherThan(nextExpected, window_size)) {
@@ -33,21 +32,23 @@ void SelectiveRepeatArqProcess::processAck(L2Segment *segment) {
         return;
     }
 
-    for(auto it = list_sentUnacked.begin(); it != list_sentUnacked.end(); it++) {
-        auto unackedSeqNo = (*it)->getHeader()->getSeqno();
+    for (auto it = list_sentUnacked.begin(); it != list_sentUnacked.end(); it++) {
+
+        L2HeaderUnicast *header = (L2HeaderUnicast *) (*it)->getBaseHeader();
+        auto unackedSeqNo = header->getSeqno();
         bool isInSrej = false;
         // if in srej, put in rtx list and delete
-        for(auto it2 = srej.begin(); it2 != srej.end(); it2++) {
-            if(unackedSeqNo == *it2) {
+        for (auto it2 = srej.begin(); it2 != srej.end(); it2++) {
+            if (unackedSeqNo == *it2) {
                 isInSrej = true;
             }
         }
 
-        if(isInSrej) {
+        if (isInSrej) {
             list_rtx.push_back(*it);
             list_sentUnacked.erase(it);
             continue;
-        } else if(unackedSeqNo.isLowerThan(nextExpected, window_size)){
+        } else if (unackedSeqNo.isLowerThan(nextExpected, window_size)) {
             list_sentUnacked.erase(it);
             continue;
         }
@@ -58,9 +59,10 @@ void SelectiveRepeatArqProcess::processAck(L2Segment *segment) {
     // delete all segments which are implicitly acked
 }
 
-void SelectiveRepeatArqProcess::processLowerLayerSegment(L2Segment *segment) {
+void SelectiveRepeatArqProcess::processLowerLayerSegment(L2Packet *segment) {
     processAck(segment);
-    SequenceNumber seqNo = segment->getHeader()->getSeqno();
+    L2HeaderUnicast *header = (L2HeaderUnicast *) segment->getBaseHeader();
+    SequenceNumber seqNo = header->getSeqno();
     if (seqno_nextExpected.isLowerThan(seqNo, window_size)) {
         seqno_nextExpected = SequenceNumber(seqNo.get() + 1);
     }
@@ -70,7 +72,8 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(L2Segment *segment) {
         seqno_lastPassedUp.increment();
 
         for (auto it = list_rcvdOutOfSeq.begin(); it != list_rcvdOutOfSeq.end(); it++) {
-            seqNo = (*it)->getHeader()->getSeqno();
+            L2HeaderUnicast *header = (L2HeaderUnicast *) (*it)->getBaseHeader();
+            seqNo = header->getSeqno();
             if (seqNo == seqno_lastPassedUp + 1) {
                 list_toPassUp.push_back(*it);
                 seqno_lastPassedUp.increment();
@@ -79,9 +82,11 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(L2Segment *segment) {
         }
     } else {
         list_rcvdOutOfSeq.push_back(segment);
-        list_rcvdOutOfSeq.sort([this](L2Segment *s1, L2Segment *s2) {
-            auto seqNo1 = s1->getHeader()->getSeqno();
-            auto seqNo2 = s2->getHeader()->getSeqno();
+        list_rcvdOutOfSeq.sort([this](L2Packet *s1, L2Packet *s2) {
+            L2HeaderUnicast *header1 = (L2HeaderUnicast *) s1->getBaseHeader();
+            L2HeaderUnicast *header2 = (L2HeaderUnicast *) s2->getBaseHeader();
+            auto seqNo1 = header1->getSeqno();
+            auto seqNo2 = header2->getSeqno();
             return seqNo1.isLowerThan(seqNo2, window_size);
         });
     }
@@ -93,7 +98,8 @@ bool SelectiveRepeatArqProcess::hasRtxSegment(B size) {
 
 bool SelectiveRepeatArqProcess::wasReceivedOutOfOrder(SequenceNumber seqNo) {
     for (auto it = list_rcvdOutOfSeq.begin(); it != list_rcvdOutOfSeq.end(); it++) {
-        SequenceNumber outOfOrderSeqNo = (*it)->getHeader()->getSeqno();
+        L2HeaderUnicast *header = (L2HeaderUnicast *) (*it)->getBaseHeader();
+        SequenceNumber outOfOrderSeqNo = header->getSeqno();
         if (outOfOrderSeqNo == seqNo) {
             return true;
         }
@@ -101,14 +107,14 @@ bool SelectiveRepeatArqProcess::wasReceivedOutOfOrder(SequenceNumber seqNo) {
     return false;
 }
 
-L2Segment *SelectiveRepeatArqProcess::getRtxSegment(B size) {
-    L2Segment *segment = list_rtx.front();
+L2Packet *SelectiveRepeatArqProcess::getRtxSegment(B size) {
+    L2Packet *segment = list_rtx.front();
     this->list_rtx.pop_front();
     return segment;
 }
 
-void SelectiveRepeatArqProcess::processUpperLayerSegment(L2Segment *segment) {
-    L2SegmentHeader *header = segment->getHeader();
+void SelectiveRepeatArqProcess::processUpperLayerSegment(L2Packet *segment) {
+    L2HeaderUnicast *header = (L2HeaderUnicast *) segment->getBaseHeader();
     header->setSeqno(seqno_nextToSend);
     header->setSeqnoNextExpected(seqno_nextExpected);
     header->setSrejList(getSrejList());

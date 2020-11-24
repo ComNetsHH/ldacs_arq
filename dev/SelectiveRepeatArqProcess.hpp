@@ -7,17 +7,19 @@
 
 #include "TYPES.h"
 #include "SequenceNumber.hpp"
-#include "L2Segment.hpp"
+#include "L2Packet.hpp"
+#include "MacId.hpp"
 #include <list>
 #include <queue>
 
 using namespace std;
+using namespace TUHH_INTAIRNET_MCSOTDMA;
 
 namespace TUHH_INTAIRNET_ARQ {
     class SelectiveRepeatArqProcess {
     protected:
         /** Mac address of the communication of this process **/
-        MacAddress remoteAddress;
+        MacId remoteAddress;
 
         uint8_t resend_timeout;
 
@@ -36,45 +38,45 @@ namespace TUHH_INTAIRNET_ARQ {
         //SequenceNumber seqno_lastAcked = SequenceNumber(SEQNO_FIRST);
 
         /** List of segments that were sent and were not acknowledged yet. */
-        std::list<L2Segment*> list_sentUnacked;
+        std::list<L2Packet*> list_sentUnacked;
 
         /** List of segments that should be passed up to the higher layer */
-        list<L2Segment*> list_toPassUp;
+        list<L2Packet*> list_toPassUp;
 
         /** List of segments that should be retransmitted. */
-        std::list<L2Segment*> list_rtx;
+        std::list<L2Packet*> list_rtx;
 
         /** List of received out-of-order segments. */
-        std::list<L2Segment*> list_rcvdOutOfSeq;
+        std::list<L2Packet*> list_rcvdOutOfSeq;
 
         /** For logging purposes. */
         std::vector<SequenceNumber> received_segments, received_acks, sent_segments, sent_and_acked_segments, sent_acks;
         bool should_send_now = false;
 
-        void processAck(L2Segment *segment);
+        void processAck(L2Packet *segment);
 
         bool wasReceivedOutOfOrder(SequenceNumber seqNo);
 
     public:
         /** Standard constructor **/
-        SelectiveRepeatArqProcess(MacAddress remoteAddress, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
+        SelectiveRepeatArqProcess(MacId remoteAddress, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
 
         /** If a ARQ process has no internal state anymore, it can be deleted **/
         bool isStale();
 
         /** Add a segment from lower layer**/
-        void processLowerLayerSegment(L2Segment *segment);
+        void processLowerLayerSegment(L2Packet *segment);
 
         /** Add a segment received from Rlc to fill its header fields **/
-        void processUpperLayerSegment(L2Segment *segment);
+        void processUpperLayerSegment(L2Packet *segment);
 
         /** Receive all in order Segments **/
-        vector<L2Segment*> getInOrderSegments();
+        vector<L2Packet*> getInOrderSegments();
 
         vector<SequenceNumber> getSrejList();
 
         bool hasRtxSegment(B size);
-        L2Segment* getRtxSegment(B size);
+        L2Packet* getRtxSegment(B size);
 
     };
 

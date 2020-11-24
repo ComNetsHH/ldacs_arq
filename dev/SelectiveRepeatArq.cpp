@@ -20,7 +20,7 @@ B SelectiveRepeatArq::getBufferStatus() {
     throw std::logic_error("not implemented");
 }
 
-SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacAddress address) {
+SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
     auto it = arqProcesses.find(address);
     if (it != arqProcesses.end()) {
         return it->second;
@@ -28,9 +28,9 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacAddress address)
     return nullptr;
 }
 
-void SelectiveRepeatArq::receiveFromLowerLayer(L2Segment *segment) {
-    auto header = segment->getHeader();
-    MacAddress srcAddress = header->getSrcAddress();
+void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *segment) {
+    auto header = (L2HeaderUnicast*)segment->getBaseHeader();
+    MacId srcAddress = header->getSrcAddress();
     auto process = getArqProcess(srcAddress);
     if (!process) {
         process = new SelectiveRepeatArqProcess(srcAddress);
@@ -40,8 +40,8 @@ void SelectiveRepeatArq::receiveFromLowerLayer(L2Segment *segment) {
     process->processLowerLayerSegment(segment);
 }
 
-vector<L2Segment *> SelectiveRepeatArq::getInOrderSegments() {
-    vector<L2Segment *> segments;
+vector<L2Packet *> SelectiveRepeatArq::getInOrderSegments() {
+    vector<L2Packet *> segments;
     for (auto it = arqProcesses.begin(); it != arqProcesses.end(); it++) {
         auto process = it->second;
         auto processSegments = process->getInOrderSegments();
@@ -53,7 +53,7 @@ vector<L2Segment *> SelectiveRepeatArq::getInOrderSegments() {
     return segments;
 }
 
-bool SelectiveRepeatArq::hasRtxSegment(MacAddress address, B size) {
+bool SelectiveRepeatArq::hasRtxSegment(MacId address, B size) {
     auto process = getArqProcess(address);
     if (!process) {
         return false;
@@ -61,7 +61,7 @@ bool SelectiveRepeatArq::hasRtxSegment(MacAddress address, B size) {
     return process->hasRtxSegment(size);
 }
 
-L2Segment * SelectiveRepeatArq::getRtxSegment(MacAddress address, B size) {
+L2Packet * SelectiveRepeatArq::getRtxSegment(MacId address, B size) {
     auto process = getArqProcess(address);
     if (!process) {
         return nullptr;

@@ -9,22 +9,41 @@
 using namespace TUHH_INTAIRNET_ARQ;
 
 class SelectiveRepeatArqTest : public CppUnit::TestFixture {
+
+    class TestPayload : public L2Packet::Payload {
+        unsigned int getBits() const override {
+            return 1;
+        }
+    };
+
 public:
 	void createProcesses() {
         SelectiveRepeatArq arq = SelectiveRepeatArq(100, 100);
-        L2SegmentHeader header = L2SegmentHeader(SequenceNumber());
-        header.setSrcAddress(MacAddress(1));
-        L2Segment segment = L2Segment(&header);
+        TestPayload payload = TestPayload();
+        L2HeaderUnicast h1 = L2HeaderUnicast(MacId(100),
+                                             true,
+                                             SequenceNumber(2),
+                                             SequenceNumber(SEQNO_UNSET),
+                                             100);
 
-        arq.receiveFromLowerLayer(&segment);
+        h1.setSrcAddress(MacId(1));
+        L2Packet s1;
+        s1.addPayload(&h1, &payload);
+        arq.receiveFromLowerLayer(&s1);
 
         CPPUNIT_ASSERT_EQUAL(arq.getNumProcesses(), 1);
 
-        L2SegmentHeader header2 = L2SegmentHeader(SequenceNumber());
-        header.setSrcAddress(MacAddress(2));
-        L2Segment segment2 = L2Segment(&header);
+        L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
+                                             true,
+                                             SequenceNumber(2),
+                                             SequenceNumber(SEQNO_UNSET),
+                                             100);
 
-        arq.receiveFromLowerLayer(&segment2);
+        h2.setSrcAddress(MacId(2));
+        L2Packet s2;
+        s2.addPayload(&h2, &payload);
+
+        arq.receiveFromLowerLayer(&s2);
 
         CPPUNIT_ASSERT_EQUAL(arq.getNumProcesses(), 2);
 	}
@@ -32,13 +51,26 @@ public:
     void addSegmentInOrder() {
         SelectiveRepeatArq arq = SelectiveRepeatArq(100, 100);
         // Add a single segment in order
-        SequenceNumber seqNo(SEQNO_FIRST);
-        L2SegmentHeader *h1 = new L2SegmentHeader(seqNo);
-        h1->setSrcAddress(MacAddress(2));
-        L2Segment s1(h1);
-        L2SegmentHeader *h2 = new L2SegmentHeader(seqNo);
-        h2->setSrcAddress(MacAddress(1));
-        L2Segment s2(h2);
+        TestPayload payload = TestPayload();
+        L2HeaderUnicast h1 = L2HeaderUnicast(MacId(100),
+                                             true,
+                                             SequenceNumber(SEQNO_FIRST),
+                                             SequenceNumber(SEQNO_UNSET),
+                                             100);
+
+        h1.setSrcAddress(MacId(1));
+        L2Packet s1;
+        s1.addPayload(&h1, &payload);
+        arq.receiveFromLowerLayer(&s1);
+        L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
+                                             true,
+                                             SequenceNumber(SEQNO_FIRST),
+                                             SequenceNumber(SEQNO_UNSET),
+                                             100);
+
+        h1.setSrcAddress(MacId(2));
+        L2Packet s2;
+        s2.addPayload(&h2, &payload);
         arq.receiveFromLowerLayer(&s1);
         arq.receiveFromLowerLayer(&s2);
         auto segments = arq.getInOrderSegments();
@@ -48,13 +80,26 @@ public:
     void addSegmentOutOfOrder() {
         SelectiveRepeatArq arq = SelectiveRepeatArq(100, 100);
         // Add a single segment in order
-        SequenceNumber seqNo(12);
-        L2SegmentHeader *h1 = new L2SegmentHeader(seqNo);
-        h1->setSrcAddress(MacAddress(2));
-        L2Segment s1(h1);
-        L2SegmentHeader *h2 = new L2SegmentHeader(seqNo);
-        h2->setSrcAddress(MacAddress(1));
-        L2Segment s2(h2);
+        TestPayload payload = TestPayload();
+        L2HeaderUnicast h1 = L2HeaderUnicast(MacId(100),
+                                             true,
+                                             SequenceNumber(13),
+                                             SequenceNumber(SEQNO_UNSET),
+                                             100);
+
+        h1.setSrcAddress(MacId(1));
+        L2Packet s1;
+        s1.addPayload(&h1, &payload);
+        arq.receiveFromLowerLayer(&s1);
+        L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
+                                             true,
+                                             SequenceNumber(12),
+                                             SequenceNumber(SEQNO_UNSET),
+                                             100);
+
+        h1.setSrcAddress(MacId(2));
+        L2Packet s2;
+        s2.addPayload(&h2, &payload);
         arq.receiveFromLowerLayer(&s1);
         arq.receiveFromLowerLayer(&s2);
         auto segments = arq.getInOrderSegments();
@@ -68,11 +113,11 @@ public:
     void checkRtx() {
         SelectiveRepeatArq arq = SelectiveRepeatArq(100, 100);
         // check for RTX of MacAddress 0
-        CPPUNIT_ASSERT_EQUAL(false, arq.hasRtxSegment(0, 100));
-        CPPUNIT_ASSERT_EQUAL(false, arq.hasRtxSegment(1, 100));
+        CPPUNIT_ASSERT_EQUAL(false, arq.hasRtxSegment(MacId(0), 100));
+        CPPUNIT_ASSERT_EQUAL(false, arq.hasRtxSegment(MacId(1), 100));
 
-        CPPUNIT_ASSERT(arq.getRtxSegment(0, 100) == nullptr);
-        CPPUNIT_ASSERT(arq.getRtxSegment(1, 100) == nullptr);
+        CPPUNIT_ASSERT(arq.getRtxSegment(MacId(0), 100) == nullptr);
+        CPPUNIT_ASSERT(arq.getRtxSegment(MacId(1), 100) == nullptr);
 	}
 	
 	CPPUNIT_TEST_SUITE(SelectiveRepeatArqTest);
