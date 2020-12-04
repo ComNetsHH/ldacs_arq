@@ -72,3 +72,21 @@ L2Packet * SelectiveRepeatArq::getRtxSegment(MacId address, B size) {
 int SelectiveRepeatArq::getNumProcesses() {
     return arqProcesses.size();
 }
+
+void SelectiveRepeatArq::notifyAboutNewLink(const MacId& id) {
+    auto process = getArqProcess(id);
+    if(process != nullptr) {
+        throw std::runtime_error("Link must be removed first");
+    }
+    process = new SelectiveRepeatArqProcess(id);
+    arqProcesses.insert(make_pair(id, process));
+}
+
+void SelectiveRepeatArq::notifyAboutRemovedLink(const MacId& id) {
+    auto it = arqProcesses.find(id);
+    if (it != arqProcesses.end()) {
+        return;
+    }
+    arqProcesses.erase(it);
+    delete it->second;
+}

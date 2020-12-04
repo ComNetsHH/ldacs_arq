@@ -43,6 +43,13 @@ namespace TUHH_INTAIRNET_ARQ {
 
         /** Get Segments to be passed up **/
         vector<L2Packet*> getInOrderSegments();
+
+        /** TODO: **/
+        bool shouldLinkBeArqProtected(const MacId& mac_id);
+
+
+        void notifyAboutNewLink(const MacId& id);
+        void notifyAboutRemovedLink(const MacId& id);
     protected:
         /** Time until an unacknowledged segment is scheduled for retransmission. */
         uint8_t resend_timeout;
