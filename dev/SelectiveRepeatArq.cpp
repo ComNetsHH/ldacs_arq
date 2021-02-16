@@ -29,8 +29,8 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
 }
 
 void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *segment) {
-    auto header = (L2HeaderUnicast*)segment->getBaseHeader();
-    MacId srcAddress = header->getSrcAddress();
+    L2HeaderBase* header;// = (L2HeaderUnicast*)segment->getBaseHeader();
+    MacId srcAddress = header->icao_src_id;
     auto process = getArqProcess(srcAddress);
     if (!process) {
         process = new SelectiveRepeatArqProcess(srcAddress);

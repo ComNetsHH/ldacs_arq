@@ -14,6 +14,11 @@ class SelectiveRepeatArqTest : public CppUnit::TestFixture {
         unsigned int getBits() const override {
             return 1;
         }
+
+        L2Packet::Payload* copy() const override {
+            auto* copy = new TestPayload();
+            return copy;
+        };
     };
 
 public:
@@ -26,7 +31,7 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h1.setSrcAddress(MacId(1));
+        //h1.setSrcAddress(MacId(1));
         L2Packet s1;
         s1.addPayload(&h1, &payload);
         arq.receiveFromLowerLayer(&s1);
@@ -39,7 +44,7 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h2.setSrcAddress(MacId(2));
+        //h2.setSrcAddress(MacId(2));
         L2Packet s2;
         s2.addPayload(&h2, &payload);
 
@@ -58,7 +63,7 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h1.setSrcAddress(MacId(1));
+        //h1.setSrcAddress(MacId(1));
         L2Packet s1;
         s1.addPayload(&h1, &payload);
         arq.receiveFromLowerLayer(&s1);
@@ -68,7 +73,7 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h1.setSrcAddress(MacId(2));
+        //h1.setSrcAddress(MacId(2));
         L2Packet s2;
         s2.addPayload(&h2, &payload);
         arq.receiveFromLowerLayer(&s1);
@@ -87,7 +92,7 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h1.setSrcAddress(MacId(1));
+        //h1.setSrcAddress(MacId(1));
         L2Packet s1;
         s1.addPayload(&h1, &payload);
         arq.receiveFromLowerLayer(&s1);
@@ -97,7 +102,7 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h1.setSrcAddress(MacId(2));
+        //h1.setSrcAddress(MacId(2));
         L2Packet s2;
         s2.addPayload(&h2, &payload);
         arq.receiveFromLowerLayer(&s1);

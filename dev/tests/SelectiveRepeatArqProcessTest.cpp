@@ -18,6 +18,11 @@ class SelectiveRepeatArqProcessTest : public CppUnit::TestFixture {
         unsigned int getBits() const override {
             return 1;
         }
+
+        L2Packet::Payload* copy() const override {
+            auto* copy = new TestPayload();
+            return copy;
+        };
     };
 public:
     void addSegmentInOrder() {
@@ -224,7 +229,7 @@ public:
         CPPUNIT_ASSERT(process.hasRtxSegment(100));
 
         L2Packet *rtxSegment = process.getRtxSegment(100);
-        L2HeaderUnicast *rtxHeader = (L2HeaderUnicast*) rtxSegment->getBaseHeader();
+        L2HeaderUnicast *rtxHeader;// = (L2HeaderUnicast*) rtxSegment->getBaseHeader();
 
         CPPUNIT_ASSERT(rtxHeader->getSeqno() == h2.getSeqno());
         CPPUNIT_ASSERT(!process.hasRtxSegment(100));
