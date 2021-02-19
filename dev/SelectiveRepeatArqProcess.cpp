@@ -4,6 +4,7 @@
 
 #include "SelectiveRepeatArqProcess.hpp"
 #include "PacketUtils.hpp"
+#include <iostream>
 
 using namespace TUHH_INTAIRNET_ARQ;
 using namespace std;
@@ -60,9 +61,10 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
 }
 
 void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment) {
-    processAck(segment);
-    L2HeaderUnicast *header;// = (L2HeaderUnicast *) segment->getBaseHeader();
+    //processAck(segment);
+    auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber seqNo = header->getSeqno();
+
     if (seqno_nextExpected.isLowerThan(seqNo, window_size)) {
         seqno_nextExpected = SequenceNumber(seqNo.get() + 1);
     }
@@ -71,8 +73,9 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
         list_toPassUp.push_back(segment);
         seqno_lastPassedUp.increment();
 
+
         for (auto it = list_rcvdOutOfSeq.begin(); it != list_rcvdOutOfSeq.end(); it++) {
-            L2HeaderUnicast *header;// = (L2HeaderUnicast *) (*it)->getBaseHeader();
+            L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
             seqNo = header->getSeqno();
             if (seqNo == seqno_lastPassedUp + 1) {
                 list_toPassUp.push_back(*it);
