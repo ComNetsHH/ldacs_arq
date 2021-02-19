@@ -25,7 +25,7 @@ vector<PacketFragment> SelectiveRepeatArqProcess::getInOrderSegments() {
 }
 
 void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
-    L2HeaderUnicast *header;// = (L2HeaderUnicast *) segment->getBaseHeader();
+    auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber nextExpected = header->getSeqnoNextExpected();
     vector<SequenceNumber> srej = header->getSrejList();
     if (seqno_nextExpected.isHigherThan(nextExpected, window_size)) {
@@ -61,7 +61,7 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
 }
 
 void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment) {
-    //processAck(segment);
+    processAck(segment);
     auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber seqNo = header->getSeqno();
 
