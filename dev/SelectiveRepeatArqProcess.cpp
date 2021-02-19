@@ -34,8 +34,7 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
     }
 
     for (auto it = list_sentUnacked.begin(); it != list_sentUnacked.end(); it++) {
-
-        L2HeaderUnicast *header;// = (L2HeaderUnicast *) (*it)->getBaseHeader();
+        L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
         auto unackedSeqNo = header->getSeqno();
         bool isInSrej = false;
         // if in srej, put in rtx list and delete
@@ -101,7 +100,7 @@ bool SelectiveRepeatArqProcess::hasRtxSegment(B size) {
 
 bool SelectiveRepeatArqProcess::wasReceivedOutOfOrder(SequenceNumber seqNo) {
     for (auto it = list_rcvdOutOfSeq.begin(); it != list_rcvdOutOfSeq.end(); it++) {
-        L2HeaderUnicast *header;// = (L2HeaderUnicast *) (*it)->getBaseHeader();
+        auto header = (L2HeaderUnicast *) (*it).first;
         SequenceNumber outOfOrderSeqNo = header->getSeqno();
         if (outOfOrderSeqNo == seqNo) {
             return true;
@@ -114,12 +113,14 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(B size) {
     PacketFragment segment = list_rtx.front();
     this->list_rtx.pop_front();
     auto packet = new L2Packet();
+    L2HeaderBase* base_header = new L2HeaderBase(MacId(0), 0, 0, 0);
+    packet->addPayload(base_header, nullptr);
     packet->addPayload(segment.first, segment.second);
     return packet;
 }
 
 void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment) {
-    L2HeaderUnicast *header;// = (L2HeaderUnicast *) segment->getBaseHeader();
+    auto header = (L2HeaderUnicast *) segment.first;
     header->setSeqno(seqno_nextToSend);
     header->setSeqnoNextExpected(seqno_nextExpected);
     header->setSrejList(getSrejList());

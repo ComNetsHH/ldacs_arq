@@ -5,6 +5,7 @@
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include "../SelectiveRepeatArqProcess.hpp"
+#include "../PacketUtils.hpp"
 #include "L2Packet.hpp"
 
 #include <iostream>
@@ -214,8 +215,12 @@ public:
 
         CPPUNIT_ASSERT(process.hasRtxSegment(100));
 
+
         L2Packet *rtxSegment = process.getRtxSegment(100);
-        L2HeaderUnicast *rtxHeader;// = (L2HeaderUnicast*) rtxSegment->getBaseHeader();
+        auto unicastHeaders = PacketUtils::getUnicastFragments(rtxSegment);
+
+        CPPUNIT_ASSERT_EQUAL(1, (int)unicastHeaders.size());
+        L2HeaderUnicast *rtxHeader = (L2HeaderUnicast*) unicastHeaders[0].first;
 
         CPPUNIT_ASSERT(rtxHeader->getSeqno() == h2.getSeqno());
         CPPUNIT_ASSERT(!process.hasRtxSegment(100));
@@ -224,11 +229,11 @@ public:
 
 CPPUNIT_TEST_SUITE(SelectiveRepeatArqProcessTest);
         CPPUNIT_TEST(addSegmentInOrder);
-        //CPPUNIT_TEST(addSegmentOutOfOrder);
-        //CPPUNIT_TEST(addSeveralSegmentsOutOfOrder);
-        //CPPUNIT_TEST(testHasRtxSegment);
-        //CPPUNIT_TEST(testAddSegmentFromUpperLayer);
-        //CPPUNIT_TEST(testSelectiveRejection);
-        //CPPUNIT_TEST(handlesAck);
+        CPPUNIT_TEST(addSegmentOutOfOrder);
+        CPPUNIT_TEST(addSeveralSegmentsOutOfOrder);
+        CPPUNIT_TEST(testHasRtxSegment);
+        CPPUNIT_TEST(testAddSegmentFromUpperLayer);
+        CPPUNIT_TEST(testSelectiveRejection);
+        CPPUNIT_TEST(handlesAck);
     CPPUNIT_TEST_SUITE_END();
 };
