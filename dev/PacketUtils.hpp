@@ -19,6 +19,10 @@ public:
     static L2HeaderBase* getBaseHeader(L2Packet* packet);
 
     static vector<PacketFragment> getUnicastFragments(L2Packet* packet);
+
+    static vector<SequenceNumber> getSrejList(L2HeaderUnicast * header);
+
+    static void setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> srej);
 };
 
 

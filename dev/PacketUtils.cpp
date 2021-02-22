@@ -31,3 +31,29 @@ vector<PacketFragment> PacketUtils::getUnicastFragments(L2Packet* packet) {
     }
     return fragments;
 }
+
+vector<SequenceNumber> PacketUtils::getSrejList(L2HeaderUnicast *header) {
+    vector<SequenceNumber> srej;
+    SequenceNumber anchor = header->getSeqnoNextExpected();
+    auto srej_bitmap = header->srej_bitmap;
+    for(int i = 0; i< srej_bitmap.size(); i++) {
+        if(srej_bitmap[i]) {
+            srej.push_back(anchor - (16 - i));
+        }
+    }
+
+
+    return srej;
+}
+
+void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> srej) {
+    SequenceNumber anchor = header->getSeqnoNextExpected();
+    auto srej_bitmap = header->srej_bitmap;
+
+    for(int i=0; i< srej.size(); i++) {
+        auto diff = anchor.get() - srej[i].get();
+        srej_bitmap[16-diff] = true;
+    }
+    header->srej_bitmap = srej_bitmap;
+    return;
+}

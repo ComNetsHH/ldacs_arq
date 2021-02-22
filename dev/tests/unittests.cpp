@@ -5,6 +5,7 @@
 #include <cppunit/CompilerOutputter.h>
 #include "SelectiveRepeatArqTest.cpp"
 #include "SelectiveRepeatArqProcessTest.cpp"
+#include "PacketUtilsTest.cpp"
 
 using namespace std;
 
@@ -17,6 +18,7 @@ int main(int argc, const char* argv[]) {
 //    result.addListener (&collectedResults);
 //    result.addListener (&progress);
 
+    runner.addTest(PacketUtilsTest::suite());
     runner.addTest(SelectiveRepeatArqProcessTest::suite());
 
 //    runner.run(result);

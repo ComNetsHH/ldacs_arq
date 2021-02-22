@@ -33,7 +33,7 @@ public:
 
         //h1.setSrcAddress(MacId(1));
         L2Packet s1;
-        s1.addPayload(&h1, &payload);
+        s1.addMessage(&h1, &payload);
         arq.receiveFromLowerLayer(&s1);
 
         CPPUNIT_ASSERT_EQUAL(arq.getNumProcesses(), 1);
@@ -46,7 +46,7 @@ public:
 
         //h2.setSrcAddress(MacId(2));
         L2Packet s2;
-        s2.addPayload(&h2, &payload);
+        s2.addMessage(&h2, &payload);
 
         arq.receiveFromLowerLayer(&s2);
 
@@ -65,7 +65,7 @@ public:
 
         //h1.setSrcAddress(MacId(1));
         L2Packet s1;
-        s1.addPayload(&h1, &payload);
+        s1.addMessage(&h1, &payload);
         arq.receiveFromLowerLayer(&s1);
         L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
                                              true,
@@ -75,7 +75,7 @@ public:
 
         //h1.setSrcAddress(MacId(2));
         L2Packet s2;
-        s2.addPayload(&h2, &payload);
+        s2.addMessage(&h2, &payload);
         arq.receiveFromLowerLayer(&s1);
         arq.receiveFromLowerLayer(&s2);
         auto segments = arq.getInOrderSegments();
@@ -94,7 +94,7 @@ public:
 
         //h1.setSrcAddress(MacId(1));
         L2Packet s1;
-        s1.addPayload(&h1, &payload);
+        s1.addMessage(&h1, &payload);
         arq.receiveFromLowerLayer(&s1);
         L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
                                              true,
@@ -104,7 +104,7 @@ public:
 
         //h1.setSrcAddress(MacId(2));
         L2Packet s2;
-        s2.addPayload(&h2, &payload);
+        s2.addMessage(&h2, &payload);
         arq.receiveFromLowerLayer(&s1);
         arq.receiveFromLowerLayer(&s2);
         auto segments = arq.getInOrderSegments();

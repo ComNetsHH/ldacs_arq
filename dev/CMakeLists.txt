@@ -13,6 +13,6 @@ add_library(tuhh_intairnet_arq SHARED ${TARGET_SRC} ${TARGET_INCL})
 find_library(GLUE_LIBRARY intairnet_linklayer_glue HINTS glue-lib)
 target_link_libraries(tuhh_intairnet_arq PUBLIC ${GLUE_LIBRARY})
 
-add_executable(unittests tests/unittests.cpp tests/SelectiveRepeatArqTest.cpp tests/SelectiveRepeatArqProcessTest.cpp)
+add_executable(unittests tests/unittests.cpp tests/SelectiveRepeatArqTest.cpp tests/SelectiveRepeatArqProcessTest.cpp tests/PacketUtilsTest.cpp)
 target_link_libraries(unittests cppunit tuhh_intairnet_arq)
 #target_link_libraries(unittests :libcppunit.so tuhh_intairnet_arq)

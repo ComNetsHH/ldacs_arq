@@ -27,7 +27,7 @@ vector<PacketFragment> SelectiveRepeatArqProcess::getInOrderSegments() {
 void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
     auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber nextExpected = header->getSeqnoNextExpected();
-    vector<SequenceNumber> srej = header->getSrejList();
+    vector<SequenceNumber> srej = PacketUtils::getSrejList(header);
     if (seqno_nextExpected.isHigherThan(nextExpected, window_size)) {
         // This ack must be old as it acks an old sequence number.
         return;
@@ -114,8 +114,8 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(B size) {
     this->list_rtx.pop_front();
     auto packet = new L2Packet();
     L2HeaderBase* base_header = new L2HeaderBase(MacId(0), 0, 0, 0);
-    packet->addPayload(base_header, nullptr);
-    packet->addPayload(segment.first, segment.second);
+    packet->addMessage(base_header, nullptr);
+    packet->addMessage(segment.first, segment.second);
     return packet;
 }
 
@@ -123,7 +123,7 @@ void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment)
     auto header = (L2HeaderUnicast *) segment.first;
     header->setSeqno(seqno_nextToSend);
     header->setSeqnoNextExpected(seqno_nextExpected);
-    header->setSrejList(getSrejList());
+    PacketUtils::setSrejList(header, getSrejList());
     seqno_nextToSend.increment();
     list_sentUnacked.push_back(segment);
 }

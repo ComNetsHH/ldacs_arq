@@ -209,7 +209,7 @@ public:
 
         replyHeader.setSeqnoNextExpected(SequenceNumber(4));
         vector<SequenceNumber> srej = {SequenceNumber(2)};
-        replyHeader.setSrejList(srej);
+        PacketUtils::setSrejList(&replyHeader, srej);
         auto reply = make_pair(&replyHeader, &payload);
         process.processLowerLayerSegment(reply);
 
