@@ -113,7 +113,7 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(B size) {
     PacketFragment segment = list_rtx.front();
     this->list_rtx.pop_front();
     auto packet = new L2Packet();
-    L2HeaderBase* base_header = new L2HeaderBase(MacId(0), 0, 0, 0);
+    L2HeaderBase* base_header = new L2HeaderBase(MacId(0), 0, 0, 0, 0);
     packet->addMessage(base_header, nullptr);
     packet->addMessage(segment.first, segment.second);
     return packet;
