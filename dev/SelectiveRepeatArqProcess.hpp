@@ -6,6 +6,7 @@
 #define TUHH_INTAIRNET_ARQ_SELECTIVEREPEATARQPROCESSTEST_HPP
 
 #include "TYPES.h"
+#include "PacketFragment.hpp"
 #include "SequenceNumber.hpp"
 #include "L2Packet.hpp"
 #include "MacId.hpp"
@@ -38,22 +39,22 @@ namespace TUHH_INTAIRNET_ARQ {
         //SequenceNumber seqno_lastAcked = SequenceNumber(SEQNO_FIRST);
 
         /** List of segments that were sent and were not acknowledged yet. */
-        std::list<L2Packet*> list_sentUnacked;
+        std::list<PacketFragment> list_sentUnacked;
 
         /** List of segments that should be passed up to the higher layer */
-        list<L2Packet*> list_toPassUp;
+        list<PacketFragment> list_toPassUp;
 
         /** List of segments that should be retransmitted. */
-        std::list<L2Packet*> list_rtx;
+        std::list<PacketFragment> list_rtx;
 
         /** List of received out-of-order segments. */
-        std::list<L2Packet*> list_rcvdOutOfSeq;
+        std::list<PacketFragment> list_rcvdOutOfSeq;
 
         /** For logging purposes. */
         std::vector<SequenceNumber> received_segments, received_acks, sent_segments, sent_and_acked_segments, sent_acks;
         bool should_send_now = false;
 
-        void processAck(L2Packet *segment);
+        void processAck(PacketFragment segment);
 
         bool wasReceivedOutOfOrder(SequenceNumber seqNo);
 
@@ -65,13 +66,13 @@ namespace TUHH_INTAIRNET_ARQ {
         bool isStale();
 
         /** Add a segment from lower layer**/
-        void processLowerLayerSegment(L2Packet *segment);
+        void processLowerLayerSegment(PacketFragment segment);
 
         /** Add a segment received from Rlc to fill its header fields **/
-        void processUpperLayerSegment(L2Packet *segment);
+        void processUpperLayerSegment(PacketFragment segment);
 
         /** Receive all in order Segments **/
-        vector<L2Packet*> getInOrderSegments();
+        vector<PacketFragment> getInOrderSegments();
 
         vector<SequenceNumber> getSrejList();
 

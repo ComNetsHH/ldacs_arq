@@ -5,6 +5,7 @@
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include "../SelectiveRepeatArqProcess.hpp"
+#include "../PacketUtils.hpp"
 #include "L2Packet.hpp"
 
 #include <iostream>
@@ -18,6 +19,11 @@ class SelectiveRepeatArqProcessTest : public CppUnit::TestFixture {
         unsigned int getBits() const override {
             return 1;
         }
+
+        L2Packet::Payload* copy() const override {
+            auto* copy = new TestPayload();
+            return copy;
+        };
     };
 public:
     void addSegmentInOrder() {
@@ -28,11 +34,10 @@ public:
         SequenceNumber arq_ack_no = SequenceNumber(51);
         unsigned int arq_ack_slot = 52;
         L2HeaderUnicast unicast_header = L2HeaderUnicast(dest_id, use_arq, arq_seqno, arq_ack_no, arq_ack_slot);
-        L2Packet s1;
         TestPayload payload = TestPayload();
-        s1.addPayload(&unicast_header, &payload);
+        PacketFragment s1 = make_pair(&unicast_header, &payload);
         SelectiveRepeatArqProcess process(MacId(1));
-        process.processLowerLayerSegment(&s1);
+        process.processLowerLayerSegment(s1);
         auto segments = process.getInOrderSegments();
         CPPUNIT_ASSERT_EQUAL(1, (int) segments.size());
     }
@@ -46,10 +51,9 @@ public:
                                                          SequenceNumber(2),
                                                          SequenceNumber(SEQNO_UNSET),
                                                          100);
-        L2Packet s1;
-        s1.addPayload(&h1, &payload);
+        auto s1 = make_pair(&h1, &payload);
         SelectiveRepeatArqProcess process(MacId(1));
-        process.processLowerLayerSegment(&s1);
+        process.processLowerLayerSegment(s1);
         auto segments = process.getInOrderSegments();
 
         // The first segment was added out of order. It cannot be retrieved
@@ -60,9 +64,8 @@ public:
                                              SequenceNumber(1),
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
-        L2Packet s2;
-        s2.addPayload(&h2, &payload);
-        process.processLowerLayerSegment(&s2);
+        auto s2 = make_pair(&h2, &payload);
+        process.processLowerLayerSegment(s2);
 
         segments = process.getInOrderSegments();
         // Now the gap is filled and both segments are received
@@ -78,10 +81,9 @@ public:
                                              SequenceNumber(2),
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
-        L2Packet s1;
-        s1.addPayload(&h1, &payload);
+        auto s1 = make_pair(&h1, &payload);
         SelectiveRepeatArqProcess process(dest_id);
-        process.processLowerLayerSegment(&s1);
+        process.processLowerLayerSegment(s1);
         auto segments = process.getInOrderSegments();
 
         // No in order segment
@@ -92,9 +94,8 @@ public:
                                              SequenceNumber(3),
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
-        L2Packet s2;
-        s2.addPayload(&h2, &payload);
-        process.processLowerLayerSegment(&s2);
+        auto s2 = make_pair(&h2, &payload);
+        process.processLowerLayerSegment(s2);
         segments = process.getInOrderSegments();
 
         // Still no in order segment
@@ -105,9 +106,8 @@ public:
                                              SequenceNumber(1),
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
-        L2Packet s3;
-        s3.addPayload(&h3, &payload);
-        process.processLowerLayerSegment(&s3);
+        auto s3 = make_pair(&h3, &payload);
+        process.processLowerLayerSegment(s3);
         segments = process.getInOrderSegments();
 
         // Now we can get all three
@@ -126,12 +126,11 @@ public:
                                              SequenceNumber(1),
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
-        L2Packet segment;
-        segment.addPayload(&header, &payload);
+        auto segment = make_pair(&header, &payload);
         SelectiveRepeatArqProcess process(MacId(1));
-        process.processUpperLayerSegment(&segment);
+        process.processUpperLayerSegment(segment);
         CPPUNIT_ASSERT_EQUAL(1, (int) header.getSeqno().get());
-        process.processUpperLayerSegment(&segment);
+        process.processUpperLayerSegment(segment);
         CPPUNIT_ASSERT_EQUAL(2, (int) header.getSeqno().get());
     }
 
@@ -145,9 +144,8 @@ public:
                                                  SequenceNumber(3),
                                                  SequenceNumber(SEQNO_UNSET),
                                                  100);
-        L2Packet s1;
-        s1.addPayload(&h1, &payload);
-        process.processLowerLayerSegment(&s1);
+        auto s1 = make_pair(&h1, &payload);
+        process.processLowerLayerSegment(s1);
 
 
         auto selectiveRejections = process.getSrejList();
@@ -158,9 +156,8 @@ public:
                                              SequenceNumber(2),
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
-        L2Packet s2;
-        s2.addPayload(&h2, &payload);
-        process.processLowerLayerSegment(&s2);
+        auto s2 = make_pair(&h2, &payload);
+        process.processLowerLayerSegment(s2);
 
         selectiveRejections = process.getSrejList();
         CPPUNIT_ASSERT_EQUAL(1, (int) selectiveRejections.size());
@@ -170,9 +167,8 @@ public:
                 SequenceNumber(1),
                 SequenceNumber(SEQNO_UNSET),
                 100);
-        L2Packet s3;
-        s3.addPayload(&h3, &payload);
-        process.processLowerLayerSegment(&s3);
+        auto s3 = make_pair(&h3, &payload);
+        process.processLowerLayerSegment(s3);
 
         selectiveRejections = process.getSrejList();
         CPPUNIT_ASSERT_EQUAL(0, (int) selectiveRejections.size());
@@ -186,27 +182,24 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
-        L2Packet s1;
-        s1.addPayload(&h1, &payload);
-        process.processUpperLayerSegment(&s1);
+        auto s1 = make_pair(&h1, &payload);
+        process.processUpperLayerSegment(s1);
 
         L2HeaderUnicast h2 = L2HeaderUnicast(MacId(1),
                                              true,
                                              SequenceNumber(SEQNO_UNSET),
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
-        L2Packet s2;
-        s2.addPayload(&h2, &payload);
-        process.processUpperLayerSegment(&s2);
+        auto s2 = make_pair(&h2, &payload);
+        process.processUpperLayerSegment(s2);
 
         L2HeaderUnicast h3 = L2HeaderUnicast(MacId(1),
                                              true,
                                              SequenceNumber(SEQNO_UNSET),
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
-        L2Packet s3;
-        s3.addPayload(&h3, &payload);
-        process.processUpperLayerSegment(&s3);
+        auto s3 = make_pair(&h3, &payload);
+        process.processUpperLayerSegment(s3);
 
         L2HeaderUnicast replyHeader = L2HeaderUnicast(MacId(1),
                                              true,
@@ -216,15 +209,18 @@ public:
 
         replyHeader.setSeqnoNextExpected(SequenceNumber(4));
         vector<SequenceNumber> srej = {SequenceNumber(2)};
-        replyHeader.setSrejList(srej);
-        L2Packet reply;
-        reply.addPayload(&replyHeader, &payload);
-        process.processLowerLayerSegment(&reply);
+        PacketUtils::setSrejList(&replyHeader, srej);
+        auto reply = make_pair(&replyHeader, &payload);
+        process.processLowerLayerSegment(reply);
 
         CPPUNIT_ASSERT(process.hasRtxSegment(100));
 
+
         L2Packet *rtxSegment = process.getRtxSegment(100);
-        L2HeaderUnicast *rtxHeader = (L2HeaderUnicast*) rtxSegment->getBaseHeader();
+        auto unicastHeaders = PacketUtils::getUnicastFragments(rtxSegment);
+
+        CPPUNIT_ASSERT_EQUAL(1, (int)unicastHeaders.size());
+        L2HeaderUnicast *rtxHeader = (L2HeaderUnicast*) unicastHeaders[0].first;
 
         CPPUNIT_ASSERT(rtxHeader->getSeqno() == h2.getSeqno());
         CPPUNIT_ASSERT(!process.hasRtxSegment(100));

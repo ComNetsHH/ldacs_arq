@@ -14,6 +14,11 @@ class SelectiveRepeatArqTest : public CppUnit::TestFixture {
         unsigned int getBits() const override {
             return 1;
         }
+
+        L2Packet::Payload* copy() const override {
+            auto* copy = new TestPayload();
+            return copy;
+        };
     };
 
 public:
@@ -26,9 +31,9 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h1.setSrcAddress(MacId(1));
+        //h1.setSrcAddress(MacId(1));
         L2Packet s1;
-        s1.addPayload(&h1, &payload);
+        s1.addMessage(&h1, &payload);
         arq.receiveFromLowerLayer(&s1);
 
         CPPUNIT_ASSERT_EQUAL(arq.getNumProcesses(), 1);
@@ -39,9 +44,9 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h2.setSrcAddress(MacId(2));
+        //h2.setSrcAddress(MacId(2));
         L2Packet s2;
-        s2.addPayload(&h2, &payload);
+        s2.addMessage(&h2, &payload);
 
         arq.receiveFromLowerLayer(&s2);
 
@@ -58,9 +63,9 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h1.setSrcAddress(MacId(1));
+        //h1.setSrcAddress(MacId(1));
         L2Packet s1;
-        s1.addPayload(&h1, &payload);
+        s1.addMessage(&h1, &payload);
         arq.receiveFromLowerLayer(&s1);
         L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
                                              true,
@@ -68,9 +73,9 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h1.setSrcAddress(MacId(2));
+        //h1.setSrcAddress(MacId(2));
         L2Packet s2;
-        s2.addPayload(&h2, &payload);
+        s2.addMessage(&h2, &payload);
         arq.receiveFromLowerLayer(&s1);
         arq.receiveFromLowerLayer(&s2);
         auto segments = arq.getInOrderSegments();
@@ -87,9 +92,9 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h1.setSrcAddress(MacId(1));
+        //h1.setSrcAddress(MacId(1));
         L2Packet s1;
-        s1.addPayload(&h1, &payload);
+        s1.addMessage(&h1, &payload);
         arq.receiveFromLowerLayer(&s1);
         L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
                                              true,
@@ -97,9 +102,9 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
 
-        h1.setSrcAddress(MacId(2));
+        //h1.setSrcAddress(MacId(2));
         L2Packet s2;
-        s2.addPayload(&h2, &payload);
+        s2.addMessage(&h2, &payload);
         arq.receiveFromLowerLayer(&s1);
         arq.receiveFromLowerLayer(&s2);
         auto segments = arq.getInOrderSegments();

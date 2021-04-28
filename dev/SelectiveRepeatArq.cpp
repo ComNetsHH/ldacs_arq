@@ -3,6 +3,7 @@
 //
 
 #include "SelectiveRepeatArq.hpp"
+#include "PacketUtils.hpp"
 #include <cstdint>
 #include <stdexcept>
 
@@ -28,20 +29,24 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
     return nullptr;
 }
 
-void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *segment) {
-    auto header = (L2HeaderUnicast*)segment->getBaseHeader();
-    MacId srcAddress = header->getSrcAddress();
+void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *packet) {
+    MacId srcAddress = PacketUtils::getSrcAddress(packet);
     auto process = getArqProcess(srcAddress);
     if (!process) {
         process = new SelectiveRepeatArqProcess(srcAddress);
         arqProcesses.insert(make_pair(srcAddress, process));
     }
 
-    process->processLowerLayerSegment(segment);
+    auto fragments = PacketUtils::getUnicastFragments(packet);
+
+    for(int i = 0; i< fragments.size(); i++) {
+        process->processLowerLayerSegment(fragments[i]);
+
+    }
 }
 
-vector<L2Packet *> SelectiveRepeatArq::getInOrderSegments() {
-    vector<L2Packet *> segments;
+vector<PacketFragment> SelectiveRepeatArq::getInOrderSegments() {
+    vector<PacketFragment> segments;
     for (auto it = arqProcesses.begin(); it != arqProcesses.end(); it++) {
         auto process = it->second;
         auto processSegments = process->getInOrderSegments();

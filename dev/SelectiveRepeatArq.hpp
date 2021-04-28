@@ -42,7 +42,7 @@ namespace TUHH_INTAIRNET_ARQ {
         L2Packet* getRtxSegment(MacId address, B size);
 
         /** Get Segments to be passed up **/
-        vector<L2Packet*> getInOrderSegments();
+        vector<PacketFragment> getInOrderSegments();
 
         /** TODO: **/
         bool shouldLinkBeArqProtected(const MacId& mac_id);
