@@ -9,7 +9,7 @@ using namespace TUHH_INTAIRNET_MCSOTDMA;
 
 MacId PacketUtils::getSrcAddress(L2Packet* packet) {
     auto baseHeader = PacketUtils::getBaseHeader(packet);
-    return baseHeader->icao_src_id;
+    return baseHeader->src_id;
 }
 
 L2HeaderBase* PacketUtils::getBaseHeader(L2Packet* packet) {
