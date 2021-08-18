@@ -10,6 +10,8 @@
 #include <queue>
 #include <map>
 #include "SequenceNumber.hpp"
+#include "IArq.hpp"
+#include "IOmnetPluggable.hpp"
 #include "TYPES.h"
 #include "SelectiveRepeatArqProcess.hpp"
 
@@ -17,13 +19,13 @@
 using namespace std;
 
 namespace TUHH_INTAIRNET_ARQ {
-    class SelectiveRepeatArq {
+    class SelectiveRepeatArq: public IArq, public IOmnetPluggable {
     public:
         /** Standard constructor with resend_timeout and window_size params **/
         SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size);
 
         /** Method for the MAC layer to query the buffer status. Will refer to RLC for answer **/
-        B getBufferStatus();
+        unsigned int getBufferStatus();
 
         /** Handle a segment from MAC layer **/
         void receiveFromLowerLayer(L2Packet *segment);
@@ -36,10 +38,10 @@ namespace TUHH_INTAIRNET_ARQ {
         int getNumProcesses();
 
         /** function to query for a rtx segment **/
-        bool hasRtxSegment(MacId address, B size);
+        bool hasRtxSegment(MacId address, unsigned int size);
 
         /** Function to request a segment for a given MacAddress which is currenlty scheduled to be sent to **/
-        L2Packet* getRtxSegment(MacId address, B size);
+        L2Packet* getRtxSegment(MacId address, unsigned int size);
 
         /** Get Segments to be passed up **/
         vector<PacketFragment> getInOrderSegments();
@@ -48,8 +50,8 @@ namespace TUHH_INTAIRNET_ARQ {
         bool shouldLinkBeArqProtected(const MacId& mac_id);
 
 
-        void notifyAboutNewLink(const MacId& id);
-        void notifyAboutRemovedLink(const MacId& id);
+        void notifyAboutNewLink(const MacId& id) override;
+        void notifyAboutRemovedLink(const MacId& id) override;
     protected:
         /** Time until an unacknowledged segment is scheduled for retransmission. */
         uint8_t resend_timeout;
@@ -62,6 +64,22 @@ namespace TUHH_INTAIRNET_ARQ {
 
         /** Clean all stale state **/
         void cleanUp();
+
+    public:
+        void notifyOutgoing(unsigned int num_bits, const MacId& mac_id) override;
+
+        L2Packet* requestSegment(unsigned int num_bits, const MacId& mac_id) override;
+
+        bool shouldLinkBeArqProtected(const MacId& mac_id) const override;
+
+        void injectIntoUpper(L2Packet* packet) override;
+
+        void receiveFromLower(L2Packet* packet) override;
+
+        void onEvent(double time) override;
+
+    protected:
+        void processIncomingHeader(L2Packet* incoming_packet) override;
     };
 }
 

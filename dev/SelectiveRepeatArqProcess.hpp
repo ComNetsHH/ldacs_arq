@@ -31,6 +31,7 @@ namespace TUHH_INTAIRNET_ARQ {
 
         /** The sequence number that will be assigned to the next newly sent segment. */
         SequenceNumber seqno_nextToSend = SequenceNumber(SEQNO_FIRST);
+        int seqno_next_to_send  = 1;
 
         /** The sequence number that is expected to arrive next. */
         SequenceNumber seqno_nextExpected = SequenceNumber(SEQNO_FIRST);
@@ -76,8 +77,9 @@ namespace TUHH_INTAIRNET_ARQ {
 
         vector<SequenceNumber> getSrejList();
 
-        bool hasRtxSegment(B size);
-        L2Packet* getRtxSegment(B size);
+        bool hasRtxSegment(unsigned int size);
+        L2Packet* getRtxSegment(unsigned int size);
+
 
     };
 

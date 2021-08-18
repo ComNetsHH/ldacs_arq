@@ -4,6 +4,8 @@
 
 #include "SelectiveRepeatArq.hpp"
 #include "PacketUtils.hpp"
+#include "IRlc.hpp"
+#include "IMac.hpp"
 #include <cstdint>
 #include <stdexcept>
 
@@ -17,7 +19,7 @@ bool SelectiveRepeatArq::isInRtxState() const {
     return false;
 }
 
-B SelectiveRepeatArq::getBufferStatus() {
+unsigned int SelectiveRepeatArq::getBufferStatus() {
     throw std::logic_error("not implemented");
 }
 
@@ -26,7 +28,9 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
     if (it != arqProcesses.end()) {
         return it->second;
     }
-    return nullptr;
+    auto process = new SelectiveRepeatArqProcess(address);
+    arqProcesses.insert(make_pair(address, process));
+    return process;
 }
 
 void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *packet) {
@@ -41,7 +45,6 @@ void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *packet) {
 
     for(int i = 0; i< fragments.size(); i++) {
         process->processLowerLayerSegment(fragments[i]);
-
     }
 }
 
@@ -58,7 +61,7 @@ vector<PacketFragment> SelectiveRepeatArq::getInOrderSegments() {
     return segments;
 }
 
-bool SelectiveRepeatArq::hasRtxSegment(MacId address, B size) {
+bool SelectiveRepeatArq::hasRtxSegment(MacId address, unsigned int size) {
     auto process = getArqProcess(address);
     if (!process) {
         return false;
@@ -66,7 +69,7 @@ bool SelectiveRepeatArq::hasRtxSegment(MacId address, B size) {
     return process->hasRtxSegment(size);
 }
 
-L2Packet * SelectiveRepeatArq::getRtxSegment(MacId address, B size) {
+L2Packet * SelectiveRepeatArq::getRtxSegment(MacId address, unsigned int size) {
     auto process = getArqProcess(address);
     if (!process) {
         return nullptr;
@@ -81,6 +84,7 @@ int SelectiveRepeatArq::getNumProcesses() {
 void SelectiveRepeatArq::notifyAboutNewLink(const MacId& id) {
     auto process = getArqProcess(id);
     if(process != nullptr) {
+        return;
         throw std::runtime_error("Link must be removed first");
     }
     process = new SelectiveRepeatArqProcess(id);
@@ -94,4 +98,54 @@ void SelectiveRepeatArq::notifyAboutRemovedLink(const MacId& id) {
     }
     arqProcesses.erase(it);
     delete it->second;
+}
+
+void SelectiveRepeatArq::notifyOutgoing(unsigned int num_bits, const MacId& mac_id) {
+    debug("SelectiveRepeatArq::notifyOutgoing " + std::to_string(num_bits));
+    // TODO add rtx data
+    IMac* mac = getLowerLayer();
+    mac->notifyOutgoing(num_bits, mac_id);
+}
+
+L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId& mac_id) {
+    debug("SelectiveRepeatArq::requestSegment " + std::to_string(num_bits));
+    //if(hasRtxSegment(mac_id, num_bits)) {
+        //return getRtxSegment(mac_id, num_bits);
+    //}
+    IRlc* rlc = getUpperLayer();
+    L2Packet* segment = rlc->requestSegment(num_bits, mac_id);
+    auto fragments = PacketUtils::getUnicastFragments(segment);
+    auto process = getArqProcess(mac_id);
+
+    cout << segment->print() << endl;
+    for(int i=0; i< fragments.size(); i++) {
+        process->processUpperLayerSegment(fragments[i]);
+        //SequenceNumber seqNo = ((L2HeaderUnicast*)(fragments[i].first))->getSeqno();
+        //debug("SelectiveRepeatArq::requestSegment: SeqNo" + std::to_string((int)seqNo.get()));
+    }
+    return segment;
+}
+
+bool SelectiveRepeatArq::shouldLinkBeArqProtected(const MacId& mac_id) const {
+    return false;
+}
+
+void SelectiveRepeatArq::injectIntoUpper(L2Packet* packet) {
+    debug("SelectiveRepeatArq::injectIntoUpper");
+    IRlc* rlc = getUpperLayer();
+    return rlc->receiveInjectionFromLower(packet);
+}
+
+void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
+    debug("SelectiveRepeatArq::receiveFromLower");
+    IRlc* rlc = getUpperLayer();
+    return rlc->receiveFromLower(packet);
+}
+
+void SelectiveRepeatArq::processIncomingHeader(L2Packet* incoming_packet) {
+    return;
+}
+
+void SelectiveRepeatArq::onEvent(double time) {
+
 }

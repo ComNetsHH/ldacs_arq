@@ -29,6 +29,7 @@ vector<PacketFragment> PacketUtils::getUnicastFragments(L2Packet* packet) {
             fragments.push_back(fragment);
         }
     }
+    cout << "TEST" << fragments.size() << endl;
     return fragments;
 }
 

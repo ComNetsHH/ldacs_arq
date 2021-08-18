@@ -13,6 +13,7 @@ SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId remoteAddress, uint8_
                                                      uint8_t window_size) : remoteAddress(remoteAddress) {
     this->resend_timeout = resend_timeout;
     this->window_size = window_size;
+    //this->seqno_nextToSend = TUHH_INTAIRNET_MCSOTDMA::SequenceNumber(SEQNO_FIRST);
 }
 
 vector<PacketFragment> SelectiveRepeatArqProcess::getInOrderSegments() {
@@ -94,7 +95,7 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
     }
 }
 
-bool SelectiveRepeatArqProcess::hasRtxSegment(B size) {
+bool SelectiveRepeatArqProcess::hasRtxSegment(unsigned int size) {
     return !list_rtx.empty();
 }
 
@@ -109,7 +110,7 @@ bool SelectiveRepeatArqProcess::wasReceivedOutOfOrder(SequenceNumber seqNo) {
     return false;
 }
 
-L2Packet *SelectiveRepeatArqProcess::getRtxSegment(B size) {
+L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
     PacketFragment segment = list_rtx.front();
     this->list_rtx.pop_front();
     auto packet = new L2Packet();
@@ -121,7 +122,7 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(B size) {
 
 void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment) {
     auto header = (L2HeaderUnicast *) segment.first;
-    header->setSeqno(seqno_nextToSend);
+    header->setSeqno(SequenceNumber(seqno_next_to_send++));
     header->setSeqnoNextExpected(seqno_nextExpected);
     PacketUtils::setSrejList(header, getSrejList());
     seqno_nextToSend.increment();
