@@ -65,6 +65,8 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
     auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber seqNo = header->getSeqno();
 
+    cout << (int)remoteAddress.getId() << " Received SeqNo " << (int)seqNo.get() << endl;
+
     if (seqno_nextExpected.isLowerThan(seqNo, window_size)) {
         seqno_nextExpected = SequenceNumber(seqNo.get() + 1);
     }
@@ -72,6 +74,8 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
     if (seqNo == seqno_lastPassedUp + 1) {
         list_toPassUp.push_back(segment);
         seqno_lastPassedUp.increment();
+
+        cout << "LPU " << (int) seqno_lastPassedUp.get() << endl;
 
 
         for (auto it = list_rcvdOutOfSeq.begin(); it != list_rcvdOutOfSeq.end(); it++) {
@@ -84,6 +88,8 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
             }
         }
     } else {
+
+        cout << "RECEIVED OUT OF ORDER" << endl;
         list_rcvdOutOfSeq.push_back(segment);
         list_rcvdOutOfSeq.sort([this](PacketFragment s1, PacketFragment s2) {
             L2HeaderUnicast *header1 = (L2HeaderUnicast *) s1.first;
@@ -133,6 +139,10 @@ vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
     vector<SequenceNumber> list;
     SequenceNumber seqNo(seqno_lastPassedUp + 1);
 
+    cout << (int) remoteAddress.getId() << endl;
+    cout << "lpu " << (int)  seqNo.get() << endl;
+    cout << "ne " << (int)  seqno_nextExpected.get() << endl;
+
     while (seqNo.isLowerThan(seqno_nextExpected - 1, window_size)) {
         if (wasReceivedOutOfOrder(seqNo)) {
             seqNo.increment();
@@ -140,6 +150,10 @@ vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
         }
         list.push_back(seqNo);
         seqNo.increment();
+    }
+
+    if(list.size() > 0) {
+        cout << "SREJ" << endl;
     }
     return list;
 }

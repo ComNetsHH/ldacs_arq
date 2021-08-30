@@ -11,6 +11,8 @@
 
 using namespace TUHH_INTAIRNET_ARQ;
 
+int tmp_idx = 0;
+
 SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size)
         : resend_timeout(resend_timeout), window_size(window_size) {
 }
@@ -109,19 +111,18 @@ void SelectiveRepeatArq::notifyOutgoing(unsigned int num_bits, const MacId& mac_
 
 L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId& mac_id) {
     debug("SelectiveRepeatArq::requestSegment " + std::to_string(num_bits));
-    //if(hasRtxSegment(mac_id, num_bits)) {
-        //return getRtxSegment(mac_id, num_bits);
-    //}
+    if(hasRtxSegment(mac_id, num_bits)) {
+        return getRtxSegment(mac_id, num_bits);
+    }
     IRlc* rlc = getUpperLayer();
     L2Packet* segment = rlc->requestSegment(num_bits, mac_id);
     auto fragments = PacketUtils::getUnicastFragments(segment);
     auto process = getArqProcess(mac_id);
 
-    cout << segment->print() << endl;
     for(int i=0; i< fragments.size(); i++) {
         process->processUpperLayerSegment(fragments[i]);
-        //SequenceNumber seqNo = ((L2HeaderUnicast*)(fragments[i].first))->getSeqno();
-        //debug("SelectiveRepeatArq::requestSegment: SeqNo" + std::to_string((int)seqNo.get()));
+        SequenceNumber seqNo = ((L2HeaderUnicast*)(fragments[i].first))->getSeqno();
+        //cout << ("SelectiveRepeatArq::requestSegment: SeqNo" + std::to_string((int)seqNo.get())) << endl;
     }
     return segment;
 }
@@ -137,9 +138,31 @@ void SelectiveRepeatArq::injectIntoUpper(L2Packet* packet) {
 }
 
 void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
+    if(++tmp_idx == 10) {
+        return;
+    }
+
+
     debug("SelectiveRepeatArq::receiveFromLower");
-    IRlc* rlc = getUpperLayer();
-    return rlc->receiveFromLower(packet);
+    MacId dest = packet->getDestination();
+    auto process = getArqProcess(dest);
+    auto fragments = PacketUtils::getUnicastFragments(packet);
+
+    for(int i = 0; i< fragments.size(); i++) {
+        process->processLowerLayerSegment(fragments[i]);
+    }
+
+    auto inOrderFragments = process->getInOrderSegments();
+
+    if(inOrderFragments.size() > 0) {
+        L2Packet* completePacket = packet->copy();
+        for(int i = 0; i< inOrderFragments.size(); i++) {
+            completePacket->addMessage(inOrderFragments[i].first, inOrderFragments[i].second);
+        }
+
+        IRlc* rlc = getUpperLayer();
+        return rlc->receiveFromLower(packet);
+    }
 }
 
 void SelectiveRepeatArq::processIncomingHeader(L2Packet* incoming_packet) {
@@ -149,3 +172,4 @@ void SelectiveRepeatArq::processIncomingHeader(L2Packet* incoming_packet) {
 void SelectiveRepeatArq::onEvent(double time) {
 
 }
+
