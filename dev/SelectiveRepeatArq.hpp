@@ -53,6 +53,9 @@ namespace TUHH_INTAIRNET_ARQ {
         void notifyAboutNewLink(const MacId& id) override;
         void notifyAboutRemovedLink(const MacId& id) override;
     protected:
+        /** Number of retransmissions. */
+        int numRtx = 0;
+
         /** Time until an unacknowledged segment is scheduled for retransmission. */
         uint8_t resend_timeout;
 
@@ -64,6 +67,9 @@ namespace TUHH_INTAIRNET_ARQ {
 
         /** Clean all stale state **/
         void cleanUp();
+
+        /** emit all kinds of statictics **/
+        void emitStatistics();
 
     public:
         void notifyOutgoing(unsigned int num_bits, const MacId& mac_id) override;

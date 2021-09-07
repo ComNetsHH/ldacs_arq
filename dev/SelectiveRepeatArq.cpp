@@ -11,8 +11,6 @@
 
 using namespace TUHH_INTAIRNET_ARQ;
 
-int tmp_idx = 0;
-
 SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size)
         : resend_timeout(resend_timeout), window_size(window_size) {
 }
@@ -31,6 +29,10 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
         return it->second;
     }
     auto process = new SelectiveRepeatArqProcess(address);
+
+    if(emitCallback) {
+        process->registerEmitEventCallback(emitCallback);
+    }
     arqProcesses.insert(make_pair(address, process));
     return process;
 }
@@ -48,6 +50,8 @@ void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *packet) {
     for(int i = 0; i< fragments.size(); i++) {
         process->processLowerLayerSegment(fragments[i]);
     }
+
+    emitStatistics();
 }
 
 vector<PacketFragment> SelectiveRepeatArq::getInOrderSegments() {
@@ -114,7 +118,10 @@ void SelectiveRepeatArq::notifyOutgoing(unsigned int num_bits, const MacId& mac_
 L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId& mac_id) {
     debug("SelectiveRepeatArq::requestSegment " + std::to_string(num_bits));
     if(hasRtxSegment(mac_id, num_bits)) {
-        return getRtxSegment(mac_id, num_bits);
+        auto segment =  getRtxSegment(mac_id, num_bits);
+        emit("arq_bits_sent_down", (double)segment->getBits());
+        emit("arq_num_rtx", (double)(++this->numRtx));
+        return segment;
     }
     IRlc* rlc = getUpperLayer();
     L2Packet* segment = rlc->requestSegment(num_bits, mac_id);
@@ -123,9 +130,11 @@ L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId&
 
     for(int i=0; i< fragments.size(); i++) {
         process->processUpperLayerSegment(fragments[i]);
-        SequenceNumber seqNo = ((L2HeaderUnicast*)(fragments[i].first))->getSeqno();
-        //cout << ("SelectiveRepeatArq::requestSegment: SeqNo" + std::to_string((int)seqNo.get())) << endl;
+        auto header = (L2HeaderUnicast*)fragments[i].first;
+        emit("arq_seq_no_sent", (double)header->getSeqno().get());
     }
+    emit("arq_bits_sent_down", (double)segment->getBits());
+    emitStatistics();
     return segment;
 }
 
@@ -140,11 +149,6 @@ void SelectiveRepeatArq::injectIntoUpper(L2Packet* packet) {
 }
 
 void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
-    tmp_idx ++;
-    if(tmp_idx == 10) {
-        return;
-    }
-
     debug("SelectiveRepeatArq::receiveFromLower");
     MacId src = packet->getOrigin();
     auto process = getArqProcess(src);
@@ -157,14 +161,22 @@ void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
     auto inOrderFragments = process->getInOrderSegments();
 
     if(inOrderFragments.size() > 0) {
-        L2Packet* completePacket = packet->copy();
+        auto completePacket = new L2Packet();
+        L2HeaderBase* base_header = new L2HeaderBase(process->getMacId(), 0, 0, 0, 0);
+        completePacket->addMessage(base_header, nullptr);
+
+        cout << "ARQ(" << (int) process->getMacId().getId() << ") SIZE " << inOrderFragments.size() << endl;
+
         for(int i = 0; i< inOrderFragments.size(); i++) {
             auto header = (L2HeaderUnicast*)inOrderFragments[i].first;
+            cout << "ARQ(" << (int) process->getMacId().getId() << ") UP " << (int) header->getSeqno().get() << endl;
             completePacket->addMessage(inOrderFragments[i].first, inOrderFragments[i].second);
+
         }
 
         IRlc* rlc = getUpperLayer();
-        return rlc->receiveFromLower(packet);
+        emit("arq_bits_sent_up", (double)completePacket->getBits());
+        return rlc->receiveFromLower(completePacket);
     }
 }
 
@@ -174,5 +186,20 @@ void SelectiveRepeatArq::processIncomingHeader(L2Packet* incoming_packet) {
 
 void SelectiveRepeatArq::onEvent(double time) {
 
+}
+
+
+void SelectiveRepeatArq::emitStatistics() {
+
+    double received_out_of_sequence = 0;
+    double rtx = 0;
+
+    for (auto it = arqProcesses.begin(); it != arqProcesses.end(); it++) {
+        auto process = it->second;
+        received_out_of_sequence += process->getNumReceivedOutOfSequence();
+        rtx += process->getNumRtx();
+    }
+    emit("arq_received_out_of_sequence",received_out_of_sequence);
+    emit("arq_rtx_list", rtx);
 }
 

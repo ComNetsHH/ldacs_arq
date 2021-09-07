@@ -50,18 +50,34 @@ void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> sr
     SequenceNumber anchor = header->getSeqnoNextExpected();
     auto srej_bitmap = header->srej_bitmap;
 
+    int anchorValue = (int)anchor.get();
+
     for(int i=0; i< srej.size(); i++) {
-        auto diff = anchor.get() - srej[i].get();
-        srej_bitmap[16-diff] = true;
+        int diff = anchorValue - srej[i].get();
+        if(diff > 16) {
+            cout << "Anchor " <<anchorValue << " " << (int)srej[i].get() << endl;
+            anchorValue = srej[i].get() + 16;
+            cout << "Anchor " <<anchorValue << endl;
+        }
     }
+
+
+    for(int i=0; i< srej.size(); i++) {
+        auto diff = anchorValue - srej[i].get();
+        if(diff < 16) {
+            srej_bitmap[16-diff] = true;
+        }
+
+    }
+    header->setSeqnoNextExpected(SequenceNumber(anchorValue));
     header->setSrejBitmap(srej_bitmap);
 
-    cout << endl;
     return;
 }
 
 PacketFragment PacketUtils::copyFragment(PacketFragment fragment) {
     auto header = fragment.first->copy();
+    auto originalPayload = (InetPacketPayload*)fragment.second;
     auto payload = (InetPacketPayload*)fragment.second;
     if(payload != nullptr) {
         payload = (InetPacketPayload*)fragment.second->copy();

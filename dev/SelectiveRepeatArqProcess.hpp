@@ -8,6 +8,7 @@
 #include "TYPES.h"
 #include "PacketFragment.hpp"
 #include "SequenceNumber.hpp"
+#include "IOmnetPluggable.hpp"
 #include "L2Packet.hpp"
 #include "MacId.hpp"
 #include <list>
@@ -17,7 +18,7 @@ using namespace std;
 using namespace TUHH_INTAIRNET_MCSOTDMA;
 
 namespace TUHH_INTAIRNET_ARQ {
-    class SelectiveRepeatArqProcess {
+    class SelectiveRepeatArqProcess: public IOmnetPluggable {
     protected:
         /** Mac address of the communication of this process **/
         MacId remoteAddress;
@@ -81,6 +82,11 @@ namespace TUHH_INTAIRNET_ARQ {
         L2Packet* getRtxSegment(unsigned int size);
 
         unsigned int getRtxSize();
+
+        unsigned int getNumReceivedOutOfSequence();
+        unsigned int getNumRtx();
+
+        MacId getMacId();
 
 
     };
