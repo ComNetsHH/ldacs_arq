@@ -80,6 +80,8 @@ namespace TUHH_INTAIRNET_ARQ {
         bool hasRtxSegment(unsigned int size);
         L2Packet* getRtxSegment(unsigned int size);
 
+        unsigned int getRtxSize();
+
 
     };
 

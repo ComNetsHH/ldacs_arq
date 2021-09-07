@@ -3,6 +3,7 @@
 //
 
 #include "PacketUtils.hpp"
+#include "InetPacketPayload.hpp"
 
 using namespace std;
 using namespace TUHH_INTAIRNET_MCSOTDMA;
@@ -38,10 +39,9 @@ vector<SequenceNumber> PacketUtils::getSrejList(L2HeaderUnicast *header) {
     auto srej_bitmap = header->srej_bitmap;
     for(int i = 0; i< srej_bitmap.size(); i++) {
         if(srej_bitmap[i]) {
-            srej.push_back(anchor - (16 - i));
+            srej.push_back(SequenceNumber(anchor - (16 - i)));
         }
     }
-
 
     return srej;
 }
@@ -54,6 +54,20 @@ void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> sr
         auto diff = anchor.get() - srej[i].get();
         srej_bitmap[16-diff] = true;
     }
-    header->srej_bitmap = srej_bitmap;
+    header->setSrejBitmap(srej_bitmap);
+
+    cout << endl;
     return;
+}
+
+PacketFragment PacketUtils::copyFragment(PacketFragment fragment) {
+    auto header = fragment.first->copy();
+    auto payload = (InetPacketPayload*)fragment.second;
+    if(payload != nullptr) {
+        payload = (InetPacketPayload*)fragment.second->copy();
+        if(payload->size > 0) {
+            payload->original = nullptr;
+        }
+    }
+    return make_pair(header, payload);
 }

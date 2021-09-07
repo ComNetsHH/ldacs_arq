@@ -105,8 +105,10 @@ void SelectiveRepeatArq::notifyAboutRemovedLink(const MacId& id) {
 void SelectiveRepeatArq::notifyOutgoing(unsigned int num_bits, const MacId& mac_id) {
     debug("SelectiveRepeatArq::notifyOutgoing " + std::to_string(num_bits));
     // TODO add rtx data
+    auto process = this->getArqProcess(mac_id);
+
     IMac* mac = getLowerLayer();
-    mac->notifyOutgoing(num_bits, mac_id);
+    mac->notifyOutgoing(num_bits + process->getRtxSize(), mac_id);
 }
 
 L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId& mac_id) {
@@ -138,14 +140,14 @@ void SelectiveRepeatArq::injectIntoUpper(L2Packet* packet) {
 }
 
 void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
-    if(++tmp_idx == 10) {
+    tmp_idx ++;
+    if(tmp_idx == 10) {
         return;
     }
 
-
     debug("SelectiveRepeatArq::receiveFromLower");
-    MacId dest = packet->getDestination();
-    auto process = getArqProcess(dest);
+    MacId src = packet->getOrigin();
+    auto process = getArqProcess(src);
     auto fragments = PacketUtils::getUnicastFragments(packet);
 
     for(int i = 0; i< fragments.size(); i++) {
@@ -157,6 +159,7 @@ void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
     if(inOrderFragments.size() > 0) {
         L2Packet* completePacket = packet->copy();
         for(int i = 0; i< inOrderFragments.size(); i++) {
+            auto header = (L2HeaderUnicast*)inOrderFragments[i].first;
             completePacket->addMessage(inOrderFragments[i].first, inOrderFragments[i].second);
         }
 
