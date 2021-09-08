@@ -55,20 +55,21 @@ void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> sr
     for(int i=0; i< srej.size(); i++) {
         int diff = anchorValue - srej[i].get();
         if(diff > 16) {
-            cout << "Anchor " <<anchorValue << " " << (int)srej[i].get() << endl;
             anchorValue = srej[i].get() + 16;
-            cout << "Anchor " <<anchorValue << endl;
         }
     }
 
-
     for(int i=0; i< srej.size(); i++) {
         auto diff = anchorValue - srej[i].get();
-        if(diff < 16) {
+
+        // Ignore all seqnos out of range
+        if(diff > 0) {
             srej_bitmap[16-diff] = true;
         }
 
     }
+
+    cout << "ANCHOR" << anchorValue << endl;
     header->setSeqnoNextExpected(SequenceNumber(anchorValue));
     header->setSrejBitmap(srej_bitmap);
 

@@ -85,6 +85,7 @@ namespace TUHH_INTAIRNET_ARQ {
 
         unsigned int getNumReceivedOutOfSequence();
         unsigned int getNumRtx();
+        unsigned int getNumUnacked();
 
         MacId getMacId();
 

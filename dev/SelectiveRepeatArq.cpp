@@ -38,6 +38,8 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
 }
 
 void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *packet) {
+    throw "WTF";
+    return;
     MacId srcAddress = PacketUtils::getSrcAddress(packet);
     auto process = getArqProcess(srcAddress);
     if (!process) {
@@ -116,12 +118,16 @@ void SelectiveRepeatArq::notifyOutgoing(unsigned int num_bits, const MacId& mac_
 }
 
 L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId& mac_id) {
+    emit("arq_bits_requested_from_lower", (double)num_bits);
     debug("SelectiveRepeatArq::requestSegment " + std::to_string(num_bits));
     if(hasRtxSegment(mac_id, num_bits)) {
-        auto segment =  getRtxSegment(mac_id, num_bits);
-        emit("arq_bits_sent_down", (double)segment->getBits());
+        auto rtxPacket =  getRtxSegment(mac_id, num_bits);
+        emit("arq_bits_sent_down", (double)rtxPacket->getBits());
         emit("arq_num_rtx", (double)(++this->numRtx));
-        return segment;
+
+
+        //cout << "### RTX " << rtxPacket->print() << endl;
+        return rtxPacket;
     }
     IRlc* rlc = getUpperLayer();
     L2Packet* segment = rlc->requestSegment(num_bits, mac_id);
@@ -135,6 +141,8 @@ L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId&
     }
     emit("arq_bits_sent_down", (double)segment->getBits());
     emitStatistics();
+
+    //cout << "ARQ send out" << segment->print() << endl;
     return segment;
 }
 
@@ -149,6 +157,14 @@ void SelectiveRepeatArq::injectIntoUpper(L2Packet* packet) {
 }
 
 void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
+    float per = 0.1;
+    float unif = (float) rand()/RAND_MAX;
+    cout << "UNIF " << unif << " " << per << endl;
+    if(per > unif) {
+        cout << "DROP" << endl;
+        return;
+    }
+
     debug("SelectiveRepeatArq::receiveFromLower");
     MacId src = packet->getOrigin();
     auto process = getArqProcess(src);
@@ -165,11 +181,9 @@ void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
         L2HeaderBase* base_header = new L2HeaderBase(process->getMacId(), 0, 0, 0, 0);
         completePacket->addMessage(base_header, nullptr);
 
-        cout << "ARQ(" << (int) process->getMacId().getId() << ") SIZE " << inOrderFragments.size() << endl;
-
         for(int i = 0; i< inOrderFragments.size(); i++) {
             auto header = (L2HeaderUnicast*)inOrderFragments[i].first;
-            cout << "ARQ(" << (int) process->getMacId().getId() << ") UP " << (int) header->getSeqno().get() << endl;
+            //cout << "ARQ(" << (int) process->getMacId().getId() << ") UP " << (int) header->getSeqno().get() << endl;
             completePacket->addMessage(inOrderFragments[i].first, inOrderFragments[i].second);
 
         }
@@ -178,6 +192,8 @@ void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
         emit("arq_bits_sent_up", (double)completePacket->getBits());
         return rlc->receiveFromLower(completePacket);
     }
+
+    emitStatistics();
 }
 
 void SelectiveRepeatArq::processIncomingHeader(L2Packet* incoming_packet) {
@@ -188,18 +204,19 @@ void SelectiveRepeatArq::onEvent(double time) {
 
 }
 
-
 void SelectiveRepeatArq::emitStatistics() {
-
     double received_out_of_sequence = 0;
     double rtx = 0;
+    double unacked = 0;
 
     for (auto it = arqProcesses.begin(); it != arqProcesses.end(); it++) {
         auto process = it->second;
         received_out_of_sequence += process->getNumReceivedOutOfSequence();
         rtx += process->getNumRtx();
+        unacked += process->getNumUnacked();
     }
     emit("arq_received_out_of_sequence",received_out_of_sequence);
     emit("arq_rtx_list", rtx);
+    emit("arq_sent_unacked", unacked);
 }
 
