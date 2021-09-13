@@ -25,6 +25,8 @@ public:
     static vector<SequenceNumber> getSrejList(L2HeaderUnicast * header);
 
     static void setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> srej);
+
+    static int diff(SequenceNumber onbe, SequenceNumber other);
 };
 
 

@@ -219,7 +219,6 @@ public:
         L2Packet *rtxSegment = process.getRtxSegment(1000);
         auto unicastHeaders = PacketUtils::getUnicastFragments(rtxSegment);
 
-        cout << rtxSegment->print() << endl;
 
         CPPUNIT_ASSERT_EQUAL(1, (int)unicastHeaders.size());
         L2HeaderUnicast *rtxHeader = (L2HeaderUnicast*) unicastHeaders[0].first;

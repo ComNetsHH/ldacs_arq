@@ -14,7 +14,7 @@ using namespace std;
 class PacketUtilsTest : public CppUnit::TestFixture {
 
     void print_srej_bitmap(array<bool, 16> bitmap) {
-        cout << endl << "Bitmap" << endl;
+        cout << "Bitmap" << endl;
         for(int i = 0; i < 16; i++) {
             if(i < 10) {
                 cout << " ";
@@ -27,13 +27,14 @@ class PacketUtilsTest : public CppUnit::TestFixture {
         for(int i = 0; i< 16; i++) {
             cout << (bitmap[i] ? "  1": "  0");
         }
+        cout << endl;
     }
 
     void print_srej_list(vector<SequenceNumber> srej) {
-        cout << endl;
         for(int i= 0; i< srej.size(); i++) {
             cout << i << " " << (int)(srej[i].get()) << endl;
         }
+        cout << endl;
     }
 
 public:
@@ -53,16 +54,38 @@ public:
 
         vector<SequenceNumber> srej = PacketUtils::getSrejList(header);
 
-        print_srej_list(srej);
+        //print_srej_list(srej);
 
-        print_srej_bitmap(header->srej_bitmap);
+        //print_srej_bitmap(header->srej_bitmap);
+        CPPUNIT_ASSERT(!header->srej_bitmap[13]);
+        CPPUNIT_ASSERT(!header->srej_bitmap[14]);
+        CPPUNIT_ASSERT(header->srej_bitmap[15]);
+    }
 
-        CPPUNIT_ASSERT(true);
+    void testSrejBitmapDuringWrapAround() {
+        MacId dest_id = MacId(99);
+        bool use_arq = true;
+        SequenceNumber arq_seqno = SequenceNumber(SEQNO_FIRST);
+        SequenceNumber seq_no_next = SequenceNumber(100);
+        unsigned int arq_ack_slot = 52;
+        vector<SequenceNumber> srej;
+
+        L2HeaderUnicast *header = new L2HeaderUnicast(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
+
+        srej.push_back(SequenceNumber(254));
+        srej.push_back(SequenceNumber(253));
+        srej.push_back(SequenceNumber(252));
+
+        PacketUtils::setSrejList(header, srej);
+        vector<SequenceNumber> srej_new = PacketUtils::getSrejList(header);
+
+        CPPUNIT_ASSERT_EQUAL(3, (int)srej_new.size());
     }
 
 
 
 CPPUNIT_TEST_SUITE(PacketUtilsTest);
         CPPUNIT_TEST(testSrejConversion);
+        CPPUNIT_TEST(testSrejBitmapDuringWrapAround);
     CPPUNIT_TEST_SUITE_END();
 };

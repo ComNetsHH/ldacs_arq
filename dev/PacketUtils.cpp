@@ -46,31 +46,41 @@ vector<SequenceNumber> PacketUtils::getSrejList(L2HeaderUnicast *header) {
     return srej;
 }
 
+int PacketUtils::diff(SequenceNumber higher, SequenceNumber lower) {
+    int result = 0;
+    auto counter = SequenceNumber(lower.get());
+
+    while(higher.get() != counter.get()) {
+        counter.increment();
+        result ++;
+    }
+
+    return result;
+}
+
 void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> srej) {
-    SequenceNumber anchor = header->getSeqnoNextExpected();
+    SequenceNumber anchor = SequenceNumber(header->getSeqnoNextExpected());
     auto srej_bitmap = header->srej_bitmap;
 
-    int anchorValue = (int)anchor.get();
-
     for(int i=0; i< srej.size(); i++) {
-        int diff = anchorValue - srej[i].get();
+        int diff = PacketUtils::diff(anchor, srej[i]);
+
         if(diff > 16) {
-            anchorValue = srej[i].get() + 16;
+            anchor = SequenceNumber(srej[i]) + 16;
         }
     }
 
     for(int i=0; i< srej.size(); i++) {
-        auto diff = anchorValue - srej[i].get();
+        int diff = PacketUtils::diff(anchor, srej[i]);
 
         // Ignore all seqnos out of range
-        if(diff > 0) {
+        if(diff >= 0) {
             srej_bitmap[16-diff] = true;
         }
 
     }
 
-    cout << "ANCHOR" << anchorValue << endl;
-    header->setSeqnoNextExpected(SequenceNumber(anchorValue));
+    header->setSeqnoNextExpected(SequenceNumber(anchor));
     header->setSrejBitmap(srej_bitmap);
 
     return;
@@ -78,7 +88,6 @@ void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> sr
 
 PacketFragment PacketUtils::copyFragment(PacketFragment fragment) {
     auto header = fragment.first->copy();
-    auto originalPayload = (InetPacketPayload*)fragment.second;
     auto payload = (InetPacketPayload*)fragment.second;
     if(payload != nullptr) {
         payload = (InetPacketPayload*)fragment.second->copy();
