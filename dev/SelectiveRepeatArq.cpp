@@ -11,8 +11,8 @@
 
 using namespace TUHH_INTAIRNET_ARQ;
 
-SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size)
-        : resend_timeout(resend_timeout), window_size(window_size) {
+SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size, double per)
+        : resend_timeout(resend_timeout), window_size(window_size), per(per) {
 }
 
 bool SelectiveRepeatArq::isInRtxState() const {
@@ -157,11 +157,8 @@ void SelectiveRepeatArq::injectIntoUpper(L2Packet* packet) {
 }
 
 void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
-    float per = 0.1;
     float unif = (float) rand()/RAND_MAX;
-    cout << "UNIF " << unif << " " << per << endl;
     if(per > unif) {
-        cout << "DROP" << endl;
         return;
     }
 
@@ -184,6 +181,8 @@ void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
         for(int i = 0; i< inOrderFragments.size(); i++) {
             auto header = (L2HeaderUnicast*)inOrderFragments[i].first;
             //cout << "ARQ(" << (int) process->getMacId().getId() << ") UP " << (int) header->getSeqno().get() << endl;
+
+            emit("arq_seqno_passed_up", (double)header->getSeqno().get());
             completePacket->addMessage(inOrderFragments[i].first, inOrderFragments[i].second);
 
         }
