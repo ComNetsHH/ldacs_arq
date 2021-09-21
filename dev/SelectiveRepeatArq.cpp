@@ -13,6 +13,7 @@ using namespace TUHH_INTAIRNET_ARQ;
 
 SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size, double per)
         : resend_timeout(resend_timeout), window_size(window_size), per(per) {
+    std::srand(0);
 }
 
 bool SelectiveRepeatArq::isInRtxState() const {

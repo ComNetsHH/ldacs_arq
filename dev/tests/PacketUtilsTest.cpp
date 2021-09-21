@@ -66,7 +66,7 @@ public:
         MacId dest_id = MacId(99);
         bool use_arq = true;
         SequenceNumber arq_seqno = SequenceNumber(SEQNO_FIRST);
-        SequenceNumber seq_no_next = SequenceNumber(100);
+        SequenceNumber seq_no_next = SequenceNumber(50);
         unsigned int arq_ack_slot = 52;
         vector<SequenceNumber> srej;
 
@@ -82,10 +82,39 @@ public:
         CPPUNIT_ASSERT_EQUAL(3, (int)srej_new.size());
     }
 
+    void testTooManySrej() {
+        MacId dest_id = MacId(99);
+        bool use_arq = true;
+        SequenceNumber arq_seqno = SequenceNumber(SEQNO_FIRST);
+        SequenceNumber seq_no_next = SequenceNumber(25);
+        unsigned int arq_ack_slot = 52;
+        vector<SequenceNumber> srej;
+
+        L2HeaderUnicast *header = new L2HeaderUnicast(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
+
+        srej.push_back(SequenceNumber(2));
+        srej.push_back(SequenceNumber(6));
+        srej.push_back(SequenceNumber(7));
+        srej.push_back(SequenceNumber(8));
+        srej.push_back(SequenceNumber(17));
+        srej.push_back(SequenceNumber(18));
+        srej.push_back(SequenceNumber(20));
+        srej.push_back(SequenceNumber(22));
+        srej.push_back(SequenceNumber(23));
+
+        PacketUtils::setSrejList(header, srej);
+        vector<SequenceNumber> srej_new = PacketUtils::getSrejList(header);
+
+        print_srej_bitmap(header->srej_bitmap);
+
+        CPPUNIT_ASSERT_EQUAL(5, (int)srej_new.size());
+    }
+
 
 
 CPPUNIT_TEST_SUITE(PacketUtilsTest);
         CPPUNIT_TEST(testSrejConversion);
         CPPUNIT_TEST(testSrejBitmapDuringWrapAround);
+        CPPUNIT_TEST(testTooManySrej);
     CPPUNIT_TEST_SUITE_END();
 };

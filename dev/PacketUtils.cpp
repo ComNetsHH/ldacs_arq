@@ -46,7 +46,21 @@ vector<SequenceNumber> PacketUtils::getSrejList(L2HeaderUnicast *header) {
     return srej;
 }
 
-int PacketUtils::diff(SequenceNumber higher, SequenceNumber lower) {
+int PacketUtils::diff(SequenceNumber one, SequenceNumber other, uint8_t windowSize ) {
+    SequenceNumber higher;
+    SequenceNumber lower;
+    int sign = 0;
+
+    if(one.isHigherThan(other, windowSize)) {
+        higher = one;
+        lower = other;
+        sign = 1;
+    } else {
+        higher = other;
+        lower = one;
+        sign = -1;
+    }
+
     int result = 0;
     auto counter = SequenceNumber(lower.get());
 
@@ -55,15 +69,29 @@ int PacketUtils::diff(SequenceNumber higher, SequenceNumber lower) {
         result ++;
     }
 
-    return result;
+    return sign * result;
 }
 
 void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> srej) {
     SequenceNumber anchor = SequenceNumber(header->getSeqnoNextExpected());
     auto srej_bitmap = header->srej_bitmap;
 
+    cout << endl << endl;
+    cout << "A: " << (int)anchor.get() << endl;
+
+    for(int i= 0; i<  srej.size(); i++) {
+        cout << " S " << (int)srej[i].get() << endl;
+    }
+
+
+
+
     for(int i=0; i< srej.size(); i++) {
         int diff = PacketUtils::diff(anchor, srej[i]);
+
+        cout << "Anchor " << (int) anchor.get() << endl;
+        cout << "Seqno " << (int) srej[i].get() << endl;
+        cout << "Diff " << diff << endl;
 
         if(diff > 16) {
             anchor = SequenceNumber(srej[i]) + 16;
@@ -74,11 +102,14 @@ void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> sr
         int diff = PacketUtils::diff(anchor, srej[i]);
 
         // Ignore all seqnos out of range
-        if(diff >= 0) {
+        if(diff >= 1 && diff <= 16) {
+            cout << diff << endl;
             srej_bitmap[16-diff] = true;
         }
 
     }
+
+
 
     header->setSeqnoNextExpected(SequenceNumber(anchor));
     header->setSrejBitmap(srej_bitmap);
