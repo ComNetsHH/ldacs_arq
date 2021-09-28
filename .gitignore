@@ -269,5 +269,4 @@ docs/
 # Symlinks
 glue-lib
 glue-lib-headers
-
-
+dev/glue-lib-headers
