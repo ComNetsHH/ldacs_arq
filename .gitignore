@@ -1,5 +1,6 @@
 .idea/
 *cmake-build-debug*
+*cmake-build-release*
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
