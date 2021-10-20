@@ -9,10 +9,11 @@
 using namespace TUHH_INTAIRNET_ARQ;
 using namespace std;
 
-SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId remoteAddress, uint8_t resend_timeout,
+SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId remoteAddress, double per, uint8_t resend_timeout,
                                                      uint8_t window_size) : remoteAddress(remoteAddress) {
     this->resend_timeout = resend_timeout;
     this->window_size = window_size;
+    this->per = per;
     //this->seqno_nextToSend = TUHH_INTAIRNET_MCSOTDMA::SequenceNumber(SEQNO_FIRST);
 }
 
@@ -20,6 +21,8 @@ vector<PacketFragment> SelectiveRepeatArqProcess::getInOrderSegments() {
     vector<PacketFragment> result;
     for (auto const &segment: list_toPassUp) {
         result.push_back(segment);
+        SequenceNumber seqNo = ((L2HeaderUnicast *) segment.first)->getSeqno();
+        emit("arq_seq_no_passed_up", (double)seqNo.get());
     }
     list_toPassUp.clear();
     return result;
@@ -72,34 +75,38 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
 }
 
 void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment) {
+    float unif = (float) rand()/RAND_MAX;
+
+    if(unif < per) {
+        return;
+    }
     processAck(segment);
     auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber seqNo = SequenceNumber(header->getSeqno());
     emit("arq_seq_no_received", (double)seqNo.get());
 
-    // cout << (int)remoteAddress.getId() << " Received SeqNo " << (int)seqNo.get() << endl;
-
     if (seqno_nextExpected.isLowerThan(seqNo, window_size)) {
-        seqno_nextExpected = SequenceNumber(seqNo.get() + 1);
+        seqno_nextExpected = seqNo.next();
     }
 
-    if (seqNo == seqno_lastPassedUp + 1) {
+    if (seqNo == seqno_lastPassedUp.next()) {
         list_toPassUp.push_back(segment);
         seqno_lastPassedUp.increment();
-
-        // cout << "LPU " << (int) seqno_lastPassedUp.get() << endl;
-
 
         for (auto it = list_rcvdOutOfSeq.begin(); it != list_rcvdOutOfSeq.end(); it++) {
             L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
             seqNo = SequenceNumber(header->getSeqno());
-            if (seqNo == seqno_lastPassedUp + 1) {
+
+            emit("arq_out_of_sequence_list", (double)seqNo.get());
+            if (seqNo == seqno_lastPassedUp.next()) {
                 list_toPassUp.push_back(*it);
                 seqno_lastPassedUp.increment();
                 list_rcvdOutOfSeq.erase(it);
             }
         }
-    } else {
+    } else if(seqNo.isLowerThan(seqno_lastPassedUp, window_size)){
+        return;
+    }else {
         list_rcvdOutOfSeq.push_back(segment);
         list_rcvdOutOfSeq.sort([this](PacketFragment s1, PacketFragment s2) {
             L2HeaderUnicast *header1 = (L2HeaderUnicast *) s1.first;
@@ -167,9 +174,10 @@ void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment)
 
 vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
     vector<SequenceNumber> list;
-    SequenceNumber seqNo(seqno_lastPassedUp + 1);
+    SequenceNumber seqNo(seqno_lastPassedUp.next());
 
-    while (seqNo.isLowerThan(seqno_nextExpected - 1, window_size)) {
+    // unsure if prev works
+    while (seqNo.isLowerThan(seqno_nextExpected.prev(), window_size)) {
         if (wasReceivedOutOfOrder(seqNo)) {
             seqNo.increment();
             continue;

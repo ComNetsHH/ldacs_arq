@@ -13,7 +13,6 @@ using namespace TUHH_INTAIRNET_ARQ;
 
 SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size, double per)
         : resend_timeout(resend_timeout), window_size(window_size), per(per) {
-    std::srand(0);
 }
 
 bool SelectiveRepeatArq::isInRtxState() const {
@@ -29,7 +28,7 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
     if (it != arqProcesses.end()) {
         return it->second;
     }
-    auto process = new SelectiveRepeatArqProcess(address);
+    auto process = new SelectiveRepeatArqProcess(address, per);
 
     if(emitCallback) {
         process->registerEmitEventCallback(emitCallback);
@@ -44,7 +43,7 @@ void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *packet) {
     MacId srcAddress = PacketUtils::getSrcAddress(packet);
     auto process = getArqProcess(srcAddress);
     if (!process) {
-        process = new SelectiveRepeatArqProcess(srcAddress);
+        process = new SelectiveRepeatArqProcess(srcAddress, per);
         arqProcesses.insert(make_pair(srcAddress, process));
     }
 
@@ -96,7 +95,7 @@ void SelectiveRepeatArq::notifyAboutNewLink(const MacId& id) {
         return;
         throw std::runtime_error("Link must be removed first");
     }
-    process = new SelectiveRepeatArqProcess(id);
+    process = new SelectiveRepeatArqProcess(id, per);
     arqProcesses.insert(make_pair(id, process));
 }
 
@@ -158,11 +157,6 @@ void SelectiveRepeatArq::injectIntoUpper(L2Packet* packet) {
 }
 
 void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
-    float unif = (float) rand()/RAND_MAX;
-    if(per > unif) {
-        return;
-    }
-
     debug("SelectiveRepeatArq::receiveFromLower");
     MacId src = packet->getOrigin();
     auto process = getArqProcess(src);

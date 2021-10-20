@@ -60,9 +60,12 @@ namespace TUHH_INTAIRNET_ARQ {
 
         bool wasReceivedOutOfOrder(SequenceNumber seqNo);
 
+        /** Packet error rate imposed on the arq, INLY FOR DEBUGGING, REMOVE ME! */
+        double per = 0;
+
     public:
         /** Standard constructor **/
-        SelectiveRepeatArqProcess(MacId remoteAddress, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
+        SelectiveRepeatArqProcess(MacId remoteAddress, double per = 0.0, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
 
         /** If a ARQ process has no internal state anymore, it can be deleted **/
         bool isStale();
