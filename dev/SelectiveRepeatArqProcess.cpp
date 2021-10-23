@@ -59,14 +59,8 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
             list_sentUnacked.erase(it);
             continue;
         } else if (unackedSeqNo.isLowerThan(nextExpected, window_size)) {
+            deletePayload(it->second);
             list_sentUnacked.erase(it);
-
-            auto payload = (InetPacketPayload *)(it->second);
-
-            if(payload->original != nullptr) {
-                delete payload->original;
-                payload->original = nullptr;
-            }
             continue;
         }
 

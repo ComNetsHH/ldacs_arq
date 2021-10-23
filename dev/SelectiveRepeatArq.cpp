@@ -41,6 +41,10 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
     if(deleteL2Callback) {
         process->registerDeleteL2Callback(deleteL2Callback);
     }
+
+    if(deleteL2PayloadCallback) {
+        process->registerDeleteL2PayloadCallback(deleteL2PayloadCallback);
+    }
     arqProcesses.insert(make_pair(address, process));
     return process;
 }
@@ -107,7 +111,6 @@ void SelectiveRepeatArq::notifyAboutRemovedLink(const MacId& id) {
 
 void SelectiveRepeatArq::notifyOutgoing(unsigned int num_bits, const MacId& mac_id) {
     debug("SelectiveRepeatArq::notifyOutgoing " + std::to_string(num_bits));
-    // TODO add rtx data
     auto process = this->getArqProcess(mac_id);
 
     IMac* mac = getLowerLayer();
@@ -122,7 +125,6 @@ L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId&
         emit("arq_bits_sent_down", (double)rtxPacket->getBits());
         emit("arq_num_rtx", (double)(++this->numRtx));
 
-        cout << "### RTX " << rtxPacket->print() << endl;
         return rtxPacket;
     }
     IRlc* rlc = getUpperLayer();
