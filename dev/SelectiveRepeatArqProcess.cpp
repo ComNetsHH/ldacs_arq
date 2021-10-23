@@ -4,16 +4,17 @@
 
 #include "SelectiveRepeatArqProcess.hpp"
 #include "PacketUtils.hpp"
+#include <InetPacketPayload.hpp>
 #include <iostream>
 
 using namespace TUHH_INTAIRNET_ARQ;
+using namespace TUHH_INTAIRNET_MCSOTDMA;
 using namespace std;
 
-SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId remoteAddress, double per, uint8_t resend_timeout,
+SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId remoteAddress, uint8_t resend_timeout,
                                                      uint8_t window_size) : remoteAddress(remoteAddress) {
     this->resend_timeout = resend_timeout;
     this->window_size = window_size;
-    this->per = per;
     //this->seqno_nextToSend = TUHH_INTAIRNET_MCSOTDMA::SequenceNumber(SEQNO_FIRST);
 }
 
@@ -29,13 +30,6 @@ vector<PacketFragment> SelectiveRepeatArqProcess::getInOrderSegments() {
 }
 
 void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
-    //cout << "### MacId: " << (int) remoteAddress.getId() << " received ACK ###" << endl;
-    //cout << "Unacked: " << list_sentUnacked.size() << endl;
-    //cout << "Rtx: " << list_rtx.size() << endl;
-    //cout << "OOO: " << list_rcvdOutOfSeq.size() << endl;
-    //cout << "PO: " << list_toPassUp.size() << endl;
-    //cout << "Srej: " << srej.size() << endl;
-
     auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber nextExpected = SequenceNumber(header->getSeqnoNextExpected());
     vector<SequenceNumber> srej = PacketUtils::getSrejList(header);
@@ -60,11 +54,19 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
         }
 
         if (isInSrej) {
+            // PacketFragment copy = PacketUtils::copyFragment(*it, [this](L2Packet::Payload* payload) {return this->deepCopy(payload);});
             list_rtx.push_back(*it);
             list_sentUnacked.erase(it);
             continue;
         } else if (unackedSeqNo.isLowerThan(nextExpected, window_size)) {
             list_sentUnacked.erase(it);
+
+            auto payload = (InetPacketPayload *)(it->second);
+
+            if(payload->original != nullptr) {
+                delete payload->original;
+                payload->original = nullptr;
+            }
             continue;
         }
 
@@ -77,9 +79,6 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
 void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment) {
     float unif = (float) rand()/RAND_MAX;
 
-    if(unif < per) {
-        return;
-    }
     processAck(segment);
     auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber seqNo = SequenceNumber(header->getSeqno());
@@ -107,6 +106,7 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
     } else if(seqNo.isLowerThan(seqno_lastPassedUp, window_size)){
         return;
     }else {
+        // PacketFragment copy = PacketUtils::copyFragment(segment, [this](L2Packet::Payload* payload) {return this->deepCopy(payload);});
         list_rcvdOutOfSeq.push_back(segment);
         list_rcvdOutOfSeq.sort([this](PacketFragment s1, PacketFragment s2) {
             L2HeaderUnicast *header1 = (L2HeaderUnicast *) s1.first;
@@ -153,11 +153,11 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
 
     while(packet->getBits() < size && list_rtx.size() > 0) {
         PacketFragment original = list_rtx.front();
-        PacketFragment segment = PacketUtils::copyFragment(original);
+        PacketFragment segment = copyFragment(original);
         this->list_rtx.pop_front();
-        this->list_sentUnacked.push_back(original);
-        packet->addMessage(segment.first, segment.second);
-        emit("arq_seq_no_sent", (double)((L2HeaderUnicast*)segment.first)->getSeqno().get());
+        this->list_sentUnacked.push_back(segment);
+        packet->addMessage(original.first, original.second);
+        emit("arq_seq_no_sent", (double)((L2HeaderUnicast*)original.first)->getSeqno().get());
     }
     return packet;
 }
@@ -168,8 +168,8 @@ void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment)
     header->setSeqnoNextExpected(SequenceNumber(seqno_nextExpected));
     PacketUtils::setSrejList(header, getSrejList());
     seqno_nextToSend.increment();
-    list_sentUnacked.push_back(PacketUtils::copyFragment(segment));
-
+    PacketFragment copy = copyFragment(segment);
+    list_sentUnacked.push_back(copy);
 }
 
 vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
@@ -202,4 +202,13 @@ unsigned int SelectiveRepeatArqProcess::getNumUnacked() {
 
 MacId SelectiveRepeatArqProcess::getMacId() {
     return this->remoteAddress;
+}
+
+PacketFragment SelectiveRepeatArqProcess::copyFragment(PacketFragment fragment) {
+    auto header = fragment.first->copy();
+    auto payload = (InetPacketPayload*)fragment.second;
+    if(payload != nullptr) {
+        payload = (InetPacketPayload*)(deepCopy(fragment.second));
+    }
+    return make_pair(header, payload);
 }

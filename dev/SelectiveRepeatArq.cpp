@@ -11,8 +11,8 @@
 
 using namespace TUHH_INTAIRNET_ARQ;
 
-SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size, double per)
-        : resend_timeout(resend_timeout), window_size(window_size), per(per) {
+SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size)
+        : resend_timeout(resend_timeout), window_size(window_size) {
 }
 
 bool SelectiveRepeatArq::isInRtxState() const {
@@ -28,32 +28,25 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
     if (it != arqProcesses.end()) {
         return it->second;
     }
-    auto process = new SelectiveRepeatArqProcess(address, per);
+    auto process = new SelectiveRepeatArqProcess(address);
 
     if(emitCallback) {
         process->registerEmitEventCallback(emitCallback);
+    }
+
+    if(copyL2PayloadCallback) {
+        process->registerCopyL2PayloadCallback(copyL2PayloadCallback);
+    }
+
+    if(deleteL2Callback) {
+        process->registerDeleteL2Callback(deleteL2Callback);
     }
     arqProcesses.insert(make_pair(address, process));
     return process;
 }
 
 void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *packet) {
-    throw "WTF";
-    return;
-    MacId srcAddress = PacketUtils::getSrcAddress(packet);
-    auto process = getArqProcess(srcAddress);
-    if (!process) {
-        process = new SelectiveRepeatArqProcess(srcAddress, per);
-        arqProcesses.insert(make_pair(srcAddress, process));
-    }
 
-    auto fragments = PacketUtils::getUnicastFragments(packet);
-
-    for(int i = 0; i< fragments.size(); i++) {
-        process->processLowerLayerSegment(fragments[i]);
-    }
-
-    emitStatistics();
 }
 
 vector<PacketFragment> SelectiveRepeatArq::getInOrderSegments() {
@@ -95,7 +88,11 @@ void SelectiveRepeatArq::notifyAboutNewLink(const MacId& id) {
         return;
         throw std::runtime_error("Link must be removed first");
     }
-    process = new SelectiveRepeatArqProcess(id, per);
+    process = new SelectiveRepeatArqProcess(id);
+    cout << "CLT" << endl;
+    if(copyL2PayloadCallback) {
+        process->registerCopyL2PayloadCallback(copyL2PayloadCallback);
+    }
     arqProcesses.insert(make_pair(id, process));
 }
 
@@ -125,8 +122,7 @@ L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId&
         emit("arq_bits_sent_down", (double)rtxPacket->getBits());
         emit("arq_num_rtx", (double)(++this->numRtx));
 
-
-        //cout << "### RTX " << rtxPacket->print() << endl;
+        cout << "### RTX " << rtxPacket->print() << endl;
         return rtxPacket;
     }
     IRlc* rlc = getUpperLayer();

@@ -22,7 +22,7 @@ namespace TUHH_INTAIRNET_ARQ {
     class SelectiveRepeatArq: public IArq, public IOmnetPluggable {
     public:
         /** Standard constructor with resend_timeout and window_size params **/
-        SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size, double per = 0.0);
+        SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size);
 
         /** Method for the MAC layer to query the buffer status. Will refer to RLC for answer **/
         unsigned int getBufferStatus();
@@ -53,9 +53,6 @@ namespace TUHH_INTAIRNET_ARQ {
         void notifyAboutNewLink(const MacId& id) override;
         void notifyAboutRemovedLink(const MacId& id) override;
     protected:
-        /** Packet error rate imposed on the arq, INLY FOR DEBUGGING, REMOVE ME! */
-        double per = 0;
-
         /** Number of retransmissions. */
         int numRtx = 0;
 

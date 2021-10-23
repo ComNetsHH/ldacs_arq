@@ -20,13 +20,13 @@ public:
 
     static vector<PacketFragment> getUnicastFragments(L2Packet* packet);
 
-    static PacketFragment copyFragment(PacketFragment fragment);
-
     static vector<SequenceNumber> getSrejList(L2HeaderUnicast * header);
 
     static void setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> srej);
 
     static int diff(SequenceNumber one, SequenceNumber other, uint8_t windowSize = 100);
+
+    static PacketFragment copyFragment(PacketFragment fragment, function<L2Packet::Payload *(L2Packet::Payload *)> copyFkt);
 };
 
 
