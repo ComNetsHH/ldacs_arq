@@ -104,6 +104,7 @@ void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> sr
     return;
 }
 
+/**
 PacketFragment PacketUtils::copyFragment(PacketFragment fragment, std::function<L2Packet::Payload*(L2Packet::Payload*)> copyFkt) {
     auto header = fragment.first->copy();
     auto payload = (InetPacketPayload*)fragment.second;
@@ -112,3 +113,5 @@ PacketFragment PacketUtils::copyFragment(PacketFragment fragment, std::function<
     }
     return make_pair(header, payload);
 }
+
+ **/

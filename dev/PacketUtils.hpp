@@ -26,7 +26,7 @@ public:
 
     static int diff(SequenceNumber one, SequenceNumber other, uint8_t windowSize = 100);
 
-    static PacketFragment copyFragment(PacketFragment fragment, function<L2Packet::Payload *(L2Packet::Payload *)> copyFkt);
+    //static PacketFragment copyFragment(PacketFragment fragment, function<L2Packet::Payload *(L2Packet::Payload *)> copyFkt);
 };
 
 
