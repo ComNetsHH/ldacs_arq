@@ -157,10 +157,10 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
 
 void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment) {
     auto header = (L2HeaderUnicast *) segment.first;
-    header->setSeqno(SequenceNumber(seqno_next_to_send++));
+    header->setSeqno(SequenceNumber(seqno_nextToSend));
+    seqno_nextToSend.increment();
     header->setSeqnoNextExpected(SequenceNumber(seqno_nextExpected));
     PacketUtils::setSrejList(header, getSrejList());
-    seqno_nextToSend.increment();
     PacketFragment copy = copyFragment(segment);
     list_sentUnacked.push_back(copy);
 }
