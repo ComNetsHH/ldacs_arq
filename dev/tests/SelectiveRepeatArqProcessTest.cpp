@@ -36,7 +36,7 @@ public:
         L2HeaderUnicast unicast_header = L2HeaderUnicast(dest_id, use_arq, arq_seqno, arq_ack_no, arq_ack_slot);
         TestPayload payload = TestPayload();
         PacketFragment s1 = make_pair(&unicast_header, &payload);
-        SelectiveRepeatArqProcess process(MacId(1));
+        SelectiveRepeatArqProcess process(MacId(2),MacId(1));
         process.processLowerLayerSegment(s1);
         auto segments = process.getInOrderSegments();
         CPPUNIT_ASSERT_EQUAL(1, (int) segments.size());
@@ -52,7 +52,7 @@ public:
                                                          SequenceNumber(SEQNO_UNSET),
                                                          100);
         auto s1 = make_pair(&h1, &payload);
-        SelectiveRepeatArqProcess process(MacId(1));
+        SelectiveRepeatArqProcess process(MacId(2), MacId(1));
         process.processLowerLayerSegment(s1);
         auto segments = process.getInOrderSegments();
 
@@ -82,7 +82,7 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
         auto s1 = make_pair(&h1, &payload);
-        SelectiveRepeatArqProcess process(dest_id);
+        SelectiveRepeatArqProcess process(MacId(2), dest_id);
         process.processLowerLayerSegment(s1);
         auto segments = process.getInOrderSegments();
 
@@ -115,7 +115,7 @@ public:
     }
 
     void testHasRtxSegment() {
-        SelectiveRepeatArqProcess process(MacId(1));
+        SelectiveRepeatArqProcess process(MacId(2), MacId(1));
         CPPUNIT_ASSERT(!process.hasRtxSegment(10));
     }
 
@@ -127,7 +127,7 @@ public:
                                              SequenceNumber(SEQNO_UNSET),
                                              100);
         auto segment = make_pair(&header, &payload);
-        SelectiveRepeatArqProcess process(MacId(1));
+        SelectiveRepeatArqProcess process(MacId(2), MacId(1));
         process.processUpperLayerSegment(segment);
         CPPUNIT_ASSERT_EQUAL(1, (int) header.getSeqno().get());
         process.processUpperLayerSegment(segment);
@@ -137,7 +137,7 @@ public:
 
     void testSelectiveRejection() {
         TestPayload payload = TestPayload();
-        SelectiveRepeatArqProcess process(MacId(1));
+        SelectiveRepeatArqProcess process(MacId(2),MacId(1));
         // Add three segments out of order (3,2,1)
         L2HeaderUnicast h1 = L2HeaderUnicast(MacId(1),
                                                  true,
@@ -176,7 +176,7 @@ public:
 
     void handlesAck() {
         TestPayload payload = TestPayload();
-        SelectiveRepeatArqProcess process(MacId(1));
+        SelectiveRepeatArqProcess process(MacId(2), MacId(1));
         L2HeaderUnicast h1 = L2HeaderUnicast(MacId(1),
                                              true,
                                              SequenceNumber(SEQNO_UNSET),

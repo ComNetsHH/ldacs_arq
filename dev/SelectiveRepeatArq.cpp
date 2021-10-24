@@ -11,8 +11,8 @@
 
 using namespace TUHH_INTAIRNET_ARQ;
 
-SelectiveRepeatArq::SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size)
-        : resend_timeout(resend_timeout), window_size(window_size) {
+SelectiveRepeatArq::SelectiveRepeatArq(MacId address, uint8_t resend_timeout, uint8_t window_size)
+        : address(address), resend_timeout(resend_timeout), window_size(window_size) {
 }
 
 bool SelectiveRepeatArq::isInRtxState() const {
@@ -23,12 +23,12 @@ unsigned int SelectiveRepeatArq::getBufferStatus() {
     throw std::logic_error("not implemented");
 }
 
-SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
+SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId remoteAddress) {
     auto it = arqProcesses.find(address);
     if (it != arqProcesses.end()) {
         return it->second;
     }
-    auto process = new SelectiveRepeatArqProcess(address);
+    auto process = new SelectiveRepeatArqProcess(address, remoteAddress);
 
     if(emitCallback) {
         process->registerEmitEventCallback(emitCallback);
@@ -88,8 +88,7 @@ void SelectiveRepeatArq::notifyAboutNewLink(const MacId& id) {
         return;
         throw std::runtime_error("Link must be removed first");
     }
-    process = new SelectiveRepeatArqProcess(id);
-    cout << "CLT" << endl;
+    process = new SelectiveRepeatArqProcess(address, id);
     if(copyL2PayloadCallback) {
         process->registerCopyL2PayloadCallback(copyL2PayloadCallback);
     }
@@ -136,7 +135,6 @@ L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId&
     emit("arq_bits_sent_down", (double)segment->getBits());
     emitStatistics();
 
-    //cout << "ARQ send out" << segment->print() << endl;
     return segment;
 }
 
@@ -161,7 +159,6 @@ void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
     }
 
     auto inOrderFragments = process->getInOrderSegments();
-
     if(inOrderFragments.size() > 0) {
         auto completePacket = new L2Packet();
         L2HeaderBase* base_header = new L2HeaderBase(process->getMacId(), 0, 0, 0, 0);
@@ -169,7 +166,6 @@ void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
 
         for(int i = 0; i< inOrderFragments.size(); i++) {
             auto header = (L2HeaderUnicast*)inOrderFragments[i].first;
-            //cout << "ARQ(" << (int) process->getMacId().getId() << ") UP " << (int) header->getSeqno().get() << endl;
 
             emit("arq_seqno_passed_up", (double)header->getSeqno().get());
             completePacket->addMessage(inOrderFragments[i].first, inOrderFragments[i].second);

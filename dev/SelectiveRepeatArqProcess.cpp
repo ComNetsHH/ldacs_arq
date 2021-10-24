@@ -11,8 +11,8 @@ using namespace TUHH_INTAIRNET_ARQ;
 using namespace TUHH_INTAIRNET_MCSOTDMA;
 using namespace std;
 
-SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId remoteAddress, uint8_t resend_timeout,
-                                                     uint8_t window_size) : remoteAddress(remoteAddress) {
+SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId address, MacId remoteAddress, uint8_t resend_timeout,
+                                                     uint8_t window_size) : address(address), remoteAddress(remoteAddress) {
     this->resend_timeout = resend_timeout;
     this->window_size = window_size;
     //this->seqno_nextToSend = TUHH_INTAIRNET_MCSOTDMA::SequenceNumber(SEQNO_FIRST);
@@ -33,6 +33,7 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
     auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber nextExpected = SequenceNumber(header->getSeqnoNextExpected());
     vector<SequenceNumber> srej = PacketUtils::getSrejList(header);
+
     if (seqno_nextExpected.isHigherThan(nextExpected, window_size)) {
         // This ack must be old as it acks an old sequence number.
         // return;
@@ -71,8 +72,6 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
 }
 
 void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment) {
-    float unif = (float) rand()/RAND_MAX;
-
     processAck(segment);
     auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber seqNo = SequenceNumber(header->getSeqno());
@@ -91,6 +90,7 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
             seqNo = SequenceNumber(header->getSeqno());
 
             emit("arq_out_of_sequence_list", (double)seqNo.get());
+
             if (seqNo == seqno_lastPassedUp.next()) {
                 list_toPassUp.push_back(*it);
                 seqno_lastPassedUp.increment();
@@ -99,8 +99,7 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
         }
     } else if(seqNo.isLowerThan(seqno_lastPassedUp, window_size)){
         return;
-    }else {
-        // PacketFragment copy = PacketUtils::copyFragment(segment, [this](L2Packet::Payload* payload) {return this->deepCopy(payload);});
+    } else {
         list_rcvdOutOfSeq.push_back(segment);
         list_rcvdOutOfSeq.sort([this](PacketFragment s1, PacketFragment s2) {
             L2HeaderUnicast *header1 = (L2HeaderUnicast *) s1.first;
@@ -142,7 +141,7 @@ unsigned int SelectiveRepeatArqProcess::getRtxSize() {
 
 L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
     auto packet = new L2Packet();
-    L2HeaderBase* base_header = new L2HeaderBase(remoteAddress, 0, 0, 0, 0);
+    L2HeaderBase* base_header = new L2HeaderBase(address, 0, 0, 0, 0);
     packet->addMessage(base_header, nullptr);
 
     while(packet->getBits() < size && list_rtx.size() > 0) {
@@ -171,11 +170,12 @@ vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
     SequenceNumber seqNo(seqno_lastPassedUp.next());
 
     // unsure if prev works
-    while (seqNo.isLowerThan(seqno_nextExpected.prev(), window_size)) {
+    while (seqNo.isLowerThan(seqno_nextExpected, window_size)) {
         if (wasReceivedOutOfOrder(seqNo)) {
             seqNo.increment();
             continue;
         }
+
         list.push_back(SequenceNumber(seqNo));
         seqNo.increment();
     }

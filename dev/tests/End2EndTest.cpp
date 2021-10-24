@@ -46,32 +46,45 @@ class End2EndTest : public CppUnit::TestFixture {
 
 public:
     void test() {
-        MacId leftId(1);
-        MacId rightId(2);
-        auto leftArq = new SelectiveRepeatArq(100, 100);
-        auto rightArq = new SelectiveRepeatArq(100, 100);
+        MacId leftId(2);
+        MacId rightId(3);
+        auto leftArq = new SelectiveRepeatArq(leftId, 100, 100);
+        auto rightArq = new SelectiveRepeatArq(rightId, 100, 100);
         auto leftRlc = new MockRlc(leftId);
-        auto rightRlc = new MockRlc(leftId);
+        auto rightRlc = new MockRlc(rightId);
 
         leftArq->setUpperLayer((IRlc*)leftRlc);
         rightArq->setUpperLayer((IRlc*)rightRlc);
 
-        for(int i = 0; i< 400; i++) {
+        int lastSeqNoLeft = 0;
+        int lastSeqNoRight = 0;
 
-            auto leftPacket = leftArq->requestSegment(100, rightId);
-            rightArq->receiveFromLower(leftPacket);
+        for(int i = 0; i< 260; i++) {
 
-            auto rightPacket = rightArq->requestSegment(100, leftId);
+            auto leftPacket = leftArq->requestSegment(1600, rightId);
+
+            if(i != 253) {
+                rightArq->receiveFromLower(leftPacket);
+            }
+
+            auto rightPacket = rightArq->requestSegment(1600, leftId);
             leftArq->receiveFromLower(rightPacket);
 
 
             // -> print
             auto leftUnicastHeader = (L2HeaderUnicast*)(leftPacket->getHeaders()[1]);
-            //cout << leftPacket->print() << " " << (int)(leftUnicastHeader->seqno.get()) <<endl;
+            auto rightUnicastHeader = (L2HeaderUnicast*)(rightPacket->getHeaders()[1]);
+            //cout << "left " << (int)(leftUnicastHeader->seqno.get()) << endl;
+            //print_srej_list(PacketUtils::getSrejList(leftUnicastHeader));
+            //cout << "right " << (int)(rightUnicastHeader->seqno.get()) << endl << endl;
+            //print_srej_list(PacketUtils::getSrejList(rightUnicastHeader));
+
+            lastSeqNoLeft = (int)(leftUnicastHeader->seqno.get());
+            lastSeqNoRight = (int)(rightUnicastHeader->seqno.get());
         }
 
 
-        CPPUNIT_ASSERT_EQUAL(2,2);
+        CPPUNIT_ASSERT_EQUAL(lastSeqNoRight,lastSeqNoLeft+1);
 
         delete leftArq;
         delete rightArq;

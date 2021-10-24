@@ -23,7 +23,7 @@ class SelectiveRepeatArqTest : public CppUnit::TestFixture {
 
 public:
 	void createProcesses() {
-        SelectiveRepeatArq arq = SelectiveRepeatArq(100, 100);
+        SelectiveRepeatArq arq = SelectiveRepeatArq(MacId(2),100, 100);
         TestPayload payload = TestPayload();
         L2HeaderUnicast h1 = L2HeaderUnicast(MacId(100),
                                              true,
@@ -54,7 +54,7 @@ public:
 	}
 
     void addSegmentInOrder() {
-        SelectiveRepeatArq arq = SelectiveRepeatArq(100, 100);
+        SelectiveRepeatArq arq = SelectiveRepeatArq(MacId(2),100, 100);
         // Add a single segment in order
         TestPayload payload = TestPayload();
         L2HeaderUnicast h1 = L2HeaderUnicast(MacId(100),
@@ -83,7 +83,7 @@ public:
     }
 
     void addSegmentOutOfOrder() {
-        SelectiveRepeatArq arq = SelectiveRepeatArq(100, 100);
+        SelectiveRepeatArq arq = SelectiveRepeatArq(MacId(2),100, 100);
         // Add a single segment in order
         TestPayload payload = TestPayload();
         L2HeaderUnicast h1 = L2HeaderUnicast(MacId(100),
@@ -116,7 +116,7 @@ public:
 	}
 
     void checkRtx() {
-        SelectiveRepeatArq arq = SelectiveRepeatArq(100, 100);
+        SelectiveRepeatArq arq = SelectiveRepeatArq(MacId(2),100, 100);
         // check for RTX of MacAddress 0
         CPPUNIT_ASSERT_EQUAL(false, arq.hasRtxSegment(MacId(0), 100));
         CPPUNIT_ASSERT_EQUAL(false, arq.hasRtxSegment(MacId(1), 100));

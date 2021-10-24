@@ -105,9 +105,31 @@ public:
         PacketUtils::setSrejList(header, srej);
         vector<SequenceNumber> srej_new = PacketUtils::getSrejList(header);
 
-        print_srej_bitmap(header->srej_bitmap);
+        //print_srej_bitmap(header->srej_bitmap);
 
         CPPUNIT_ASSERT_EQUAL(5, (int)srej_new.size());
+    }
+
+
+    void testWrapAround() {
+        MacId dest_id = MacId(99);
+        bool use_arq = true;
+        SequenceNumber arq_seqno = SequenceNumber(SEQNO_FIRST);
+        SequenceNumber seq_no_next = SequenceNumber(1);
+        unsigned int arq_ack_slot = 52;
+        vector<SequenceNumber> srej;
+
+        L2HeaderUnicast *header = new L2HeaderUnicast(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
+
+        srej.push_back(SequenceNumber(254));
+
+        PacketUtils::setSrejList(header, srej);
+        vector<SequenceNumber> srej_new = PacketUtils::getSrejList(header);
+
+        //print_srej_bitmap(header->srej_bitmap);
+        //print_srej_list(srej_new);
+
+        CPPUNIT_ASSERT_EQUAL((int)(srej_new[0].get()), 254);
     }
 
 
@@ -116,5 +138,6 @@ CPPUNIT_TEST_SUITE(PacketUtilsTest);
         CPPUNIT_TEST(testSrejConversion);
         CPPUNIT_TEST(testSrejBitmapDuringWrapAround);
         CPPUNIT_TEST(testTooManySrej);
+        CPPUNIT_TEST(testWrapAround);
     CPPUNIT_TEST_SUITE_END();
 };

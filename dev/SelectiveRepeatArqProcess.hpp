@@ -23,6 +23,9 @@ namespace TUHH_INTAIRNET_ARQ {
         /** Mac address of the communication of this process **/
         MacId remoteAddress;
 
+        /** My MacId **/
+        MacId address;
+
         uint8_t resend_timeout;
 
         uint8_t window_size;
@@ -64,7 +67,7 @@ namespace TUHH_INTAIRNET_ARQ {
 
     public:
         /** Standard constructor **/
-        SelectiveRepeatArqProcess(MacId remoteAddress, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
+        SelectiveRepeatArqProcess(MacId address, MacId remoteAddress, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
 
         /** If a ARQ process has no internal state anymore, it can be deleted **/
         bool isStale();

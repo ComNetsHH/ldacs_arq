@@ -39,7 +39,8 @@ vector<SequenceNumber> PacketUtils::getSrejList(L2HeaderUnicast *header) {
     auto srej_bitmap = header->srej_bitmap;
     for(int i = 0; i< srej_bitmap.size(); i++) {
         if(srej_bitmap[i]) {
-            srej.push_back(SequenceNumber(anchor - (16 - i)));
+            SequenceNumber x = anchor - (16 - i);
+            srej.push_back(x);
         }
     }
 
