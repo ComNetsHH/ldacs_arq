@@ -27,9 +27,6 @@ namespace TUHH_INTAIRNET_ARQ {
         /** Method for the MAC layer to query the buffer status. Will refer to RLC for answer **/
         unsigned int getBufferStatus();
 
-        /** Handle a segment from MAC layer **/
-        void receiveFromLowerLayer(L2Packet *segment);
-
         /** Returns true if any of the ArqProcesses has data to retransmit **/
         bool isInRtxState() const;
 

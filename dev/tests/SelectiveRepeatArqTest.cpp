@@ -34,7 +34,7 @@ public:
         //h1.setSrcAddress(MacId(1));
         L2Packet s1;
         s1.addMessage(&h1, &payload);
-        arq.receiveFromLowerLayer(&s1);
+        arq.receiveFromLower(&s1);
 
         CPPUNIT_ASSERT_EQUAL(arq.getNumProcesses(), 1);
 
@@ -48,7 +48,7 @@ public:
         L2Packet s2;
         s2.addMessage(&h2, &payload);
 
-        arq.receiveFromLowerLayer(&s2);
+        arq.receiveFromLower(&s2);
 
         CPPUNIT_ASSERT_EQUAL(arq.getNumProcesses(), 2);
 	}
@@ -66,7 +66,7 @@ public:
         //h1.setSrcAddress(MacId(1));
         L2Packet s1;
         s1.addMessage(&h1, &payload);
-        arq.receiveFromLowerLayer(&s1);
+        arq.receiveFromLower(&s1);
         L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
                                              true,
                                              SequenceNumber(SEQNO_FIRST),
@@ -76,8 +76,8 @@ public:
         //h1.setSrcAddress(MacId(2));
         L2Packet s2;
         s2.addMessage(&h2, &payload);
-        arq.receiveFromLowerLayer(&s1);
-        arq.receiveFromLowerLayer(&s2);
+        arq.receiveFromLower(&s1);
+        arq.receiveFromLower(&s2);
         auto segments = arq.getInOrderSegments();
         CPPUNIT_ASSERT_EQUAL(2, (int) segments.size());
     }
@@ -95,7 +95,7 @@ public:
         //h1.setSrcAddress(MacId(1));
         L2Packet s1;
         s1.addMessage(&h1, &payload);
-        arq.receiveFromLowerLayer(&s1);
+        arq.receiveFromLower(&s1);
         L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
                                              true,
                                              SequenceNumber(12),
@@ -105,8 +105,8 @@ public:
         //h1.setSrcAddress(MacId(2));
         L2Packet s2;
         s2.addMessage(&h2, &payload);
-        arq.receiveFromLowerLayer(&s1);
-        arq.receiveFromLowerLayer(&s2);
+        arq.receiveFromLower(&s1);
+        arq.receiveFromLower(&s2);
         auto segments = arq.getInOrderSegments();
         CPPUNIT_ASSERT_EQUAL(0, (int) segments.size());
     }

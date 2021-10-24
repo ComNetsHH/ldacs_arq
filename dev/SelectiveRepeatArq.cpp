@@ -49,10 +49,6 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId address) {
     return process;
 }
 
-void SelectiveRepeatArq::receiveFromLowerLayer(L2Packet *packet) {
-
-}
-
 vector<PacketFragment> SelectiveRepeatArq::getInOrderSegments() {
     vector<PacketFragment> segments;
     for (auto it = arqProcesses.begin(); it != arqProcesses.end(); it++) {
