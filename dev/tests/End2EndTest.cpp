@@ -67,7 +67,7 @@ public:
 
             // -> print
             auto leftUnicastHeader = (L2HeaderUnicast*)(leftPacket->getHeaders()[1]);
-            cout << leftPacket->print() << " " << (int)(leftUnicastHeader->seqno.get()) <<endl;
+            //cout << leftPacket->print() << " " << (int)(leftUnicastHeader->seqno.get()) <<endl;
         }
 
 
