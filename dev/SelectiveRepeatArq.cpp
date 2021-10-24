@@ -11,8 +11,8 @@
 
 using namespace TUHH_INTAIRNET_ARQ;
 
-SelectiveRepeatArq::SelectiveRepeatArq(MacId address, uint8_t resend_timeout, uint8_t window_size)
-        : address(address), resend_timeout(resend_timeout), window_size(window_size) {
+SelectiveRepeatArq::SelectiveRepeatArq(MacId address, uint8_t resend_timeout, uint8_t window_size, double per)
+        : address(address), resend_timeout(resend_timeout), window_size(window_size), per(per) {
 }
 
 bool SelectiveRepeatArq::isInRtxState() const {
@@ -113,7 +113,9 @@ void SelectiveRepeatArq::notifyOutgoing(unsigned int num_bits, const MacId& mac_
 }
 
 L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId& mac_id) {
-    emit("arq_bits_requested_from_lower", (double)num_bits);
+    if(mac_id != SYMBOLIC_LINK_ID_BROADCAST) {
+        emit("arq_bits_requested_from_lower", (double)num_bits);
+    }
     debug("SelectiveRepeatArq::requestSegment " + std::to_string(num_bits));
     if(hasRtxSegment(mac_id, num_bits)) {
         auto rtxPacket =  getRtxSegment(mac_id, num_bits);
@@ -149,6 +151,12 @@ void SelectiveRepeatArq::injectIntoUpper(L2Packet* packet) {
 }
 
 void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
+
+    float unif = (float) rand()/RAND_MAX;
+
+    if(unif < per) {
+        return;
+    }
     debug("SelectiveRepeatArq::receiveFromLower");
     MacId src = packet->getOrigin();
     auto process = getArqProcess(src);
