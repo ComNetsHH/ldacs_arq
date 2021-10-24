@@ -71,7 +71,7 @@ public:
         }
 
 
-        CPPUNIT_ASSERT_EQUAL(1,1);
+        CPPUNIT_ASSERT_EQUAL(2,2);
 
         delete leftArq;
         delete rightArq;
