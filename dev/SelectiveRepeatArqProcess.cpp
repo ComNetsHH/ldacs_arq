@@ -147,8 +147,13 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
     while(packet->getBits() < size && list_rtx.size() > 0) {
         PacketFragment original = list_rtx.front();
         PacketFragment segment = copyFragment(original);
+        auto header = (L2HeaderUnicast*)(segment.first);
+        SequenceNumber seqNo = header->getSeqno();
         this->list_rtx.pop_front();
-        this->list_sentUnacked.push_back(segment);
+        if(isUnacked(seqNo)) {
+            this->list_sentUnacked.push_back(segment);
+        }
+
         packet->addMessage(original.first, original.second);
         emit("arq_seq_no_sent", (double)((L2HeaderUnicast*)original.first)->getSeqno().get());
     }
@@ -162,7 +167,9 @@ void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment)
     header->setSeqnoNextExpected(SequenceNumber(seqno_nextExpected));
     PacketUtils::setSrejList(header, getSrejList());
     PacketFragment copy = copyFragment(segment);
-    list_sentUnacked.push_back(copy);
+    if(isUnacked(header->getSeqno())) {
+        list_sentUnacked.push_back(copy);
+    }
 }
 
 vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
@@ -188,6 +195,19 @@ unsigned int SelectiveRepeatArqProcess::getNumReceivedOutOfSequence() {
 
 unsigned int SelectiveRepeatArqProcess::getNumRtx() {
     return this->list_rtx.size();
+}
+
+bool SelectiveRepeatArqProcess::isUnacked(SequenceNumber seqNo) {
+    for (auto it = list_sentUnacked.begin(); it != list_sentUnacked.end(); it++) {
+        L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
+        auto unackedSeqNo = SequenceNumber(header->getSeqno().get());
+
+        if(seqNo.get() == unackedSeqNo.get()) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 unsigned int SelectiveRepeatArqProcess::getNumUnacked() {

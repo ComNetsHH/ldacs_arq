@@ -64,6 +64,8 @@ namespace TUHH_INTAIRNET_ARQ {
 
         PacketFragment copyFragment(PacketFragment fragment);
 
+        bool isUnacked(SequenceNumber seqNo);
+
     public:
         /** Standard constructor **/
         SelectiveRepeatArqProcess(MacId address, MacId remoteAddress, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);

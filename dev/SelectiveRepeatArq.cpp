@@ -151,12 +151,12 @@ void SelectiveRepeatArq::injectIntoUpper(L2Packet* packet) {
 }
 
 void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
-
     float unif = (float) rand()/RAND_MAX;
 
     if(unif < per) {
         return;
     }
+
     debug("SelectiveRepeatArq::receiveFromLower");
     MacId src = packet->getOrigin();
     auto process = getArqProcess(src);
@@ -184,7 +184,6 @@ void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
         emit("arq_bits_sent_up", (double)completePacket->getBits());
         return rlc->receiveFromLower(completePacket);
     }
-
     emitStatistics();
 }
 
