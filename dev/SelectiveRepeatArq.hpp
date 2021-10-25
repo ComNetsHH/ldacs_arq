@@ -49,6 +49,9 @@ namespace TUHH_INTAIRNET_ARQ {
         /** TODO: **/
         bool shouldLinkBeArqProtected(const MacId& mac_id);
 
+        /** used by any process to trigger a new reporting of more data **/
+        void reportRtxData(MacId dest);
+
 
         void notifyAboutNewLink(const MacId& id) override;
         void notifyAboutRemovedLink(const MacId& id) override;

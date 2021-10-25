@@ -18,10 +18,16 @@ using namespace std;
 using namespace TUHH_INTAIRNET_MCSOTDMA;
 
 namespace TUHH_INTAIRNET_ARQ {
+    // Forward declare SelectiveRpeatArq
+    class SelectiveRepeatArq;
+
     class SelectiveRepeatArqProcess: public IOmnetPluggable {
     protected:
         /** Mac address of the communication of this process **/
         MacId remoteAddress;
+
+        /** Reference to the parent process **/
+        SelectiveRepeatArq * arq = nullptr;
 
         /** My MacId **/
         MacId address;
@@ -68,6 +74,7 @@ namespace TUHH_INTAIRNET_ARQ {
 
     public:
         /** Standard constructor **/
+        SelectiveRepeatArqProcess(SelectiveRepeatArq* parent, MacId address, MacId remoteAddress, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
         SelectiveRepeatArqProcess(MacId address, MacId remoteAddress, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
 
         /** If a ARQ process has no internal state anymore, it can be deleted **/

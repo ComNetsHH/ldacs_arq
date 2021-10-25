@@ -17,6 +17,7 @@ public:
     void receiveFromLower(L2Packet* packet) override;
     void receiveInjectionFromLower(L2Packet* packet, PacketPriority priority = PRIORITY_LINK_MANAGEMENT) override;
     bool isThereMoreData(const MacId& mac_id) const override;
+    unsigned int getQueuedDataSize(MacId dest) override {return 0;};
 };
 
 

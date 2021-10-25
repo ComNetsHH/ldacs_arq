@@ -3,6 +3,7 @@
 //
 
 #include "SelectiveRepeatArqProcess.hpp"
+#include "SelectiveRepeatArq.hpp"
 #include "PacketUtils.hpp"
 #include <InetPacketPayload.hpp>
 #include <iostream>
@@ -10,6 +11,13 @@
 using namespace TUHH_INTAIRNET_ARQ;
 using namespace TUHH_INTAIRNET_MCSOTDMA;
 using namespace std;
+
+SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(SelectiveRepeatArq* parent, MacId address, MacId remoteAddress, uint8_t resend_timeout,
+                                                     uint8_t window_size) : arq(parent), address(address), remoteAddress(remoteAddress) {
+    this->resend_timeout = resend_timeout;
+    this->window_size = window_size;
+    //this->seqno_nextToSend = TUHH_INTAIRNET_MCSOTDMA::SequenceNumber(SEQNO_FIRST);
+}
 
 SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId address, MacId remoteAddress, uint8_t resend_timeout,
                                                      uint8_t window_size) : address(address), remoteAddress(remoteAddress) {
@@ -61,6 +69,9 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
             // PacketFragment copy = PacketUtils::copyFragment(*it, [this](L2Packet::Payload* payload) {return this->deepCopy(payload);});
             list_rtx.push_back(*it);
             list_sentUnacked.erase(it++);
+            if(arq) {
+                arq->reportRtxData(header->getDestId());
+            }
             continue;
         } else if (unackedSeqNo.isLowerThan(nextExpected, window_size)) {
             deletePayload(it->second);

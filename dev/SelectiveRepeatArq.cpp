@@ -28,7 +28,7 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId remoteAddress
     if (it != arqProcesses.end()) {
         return it->second;
     }
-    auto process = new SelectiveRepeatArqProcess(address, remoteAddress);
+    auto process = new SelectiveRepeatArqProcess(this, address, remoteAddress);
 
     if(emitCallback) {
         process->registerEmitEventCallback(emitCallback);
@@ -88,7 +88,7 @@ void SelectiveRepeatArq::notifyAboutNewLink(const MacId& id) {
         return;
         throw std::runtime_error("Link must be removed first");
     }
-    process = new SelectiveRepeatArqProcess(address, id);
+    process = new SelectiveRepeatArqProcess(this, address, id);
     if(copyL2PayloadCallback) {
         process->registerCopyL2PayloadCallback(copyL2PayloadCallback);
     }
@@ -110,6 +110,21 @@ void SelectiveRepeatArq::notifyOutgoing(unsigned int num_bits, const MacId& mac_
 
     IMac* mac = getLowerLayer();
     mac->notifyOutgoing(num_bits + process->getRtxSize(), mac_id);
+}
+
+void SelectiveRepeatArq::reportRtxData(MacId dest) {
+    IRlc* rlc = getUpperLayer();
+    IMac* mac = getLowerLayer();
+
+    if(!rlc || !mac) {
+        return;
+    }
+
+
+    unsigned int data = rlc->getQueuedDataSize(dest);
+    auto process = this->getArqProcess(dest);
+    data += process->getRtxSize();
+    mac->notifyOutgoing(data, dest);
 }
 
 L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId& mac_id) {
