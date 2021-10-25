@@ -43,7 +43,10 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
         emit("arq_srej", (double)srej[i].get());
     }
 
-    for (auto it = list_sentUnacked.begin(); it != list_sentUnacked.end(); it++) {
+    auto it = list_sentUnacked.begin();
+    auto end = list_sentUnacked.end();
+
+    while (it != end) {
         L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
         auto unackedSeqNo = SequenceNumber(header->getSeqno().get());
         bool isInSrej = false;
@@ -57,18 +60,17 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
         if (isInSrej) {
             // PacketFragment copy = PacketUtils::copyFragment(*it, [this](L2Packet::Payload* payload) {return this->deepCopy(payload);});
             list_rtx.push_back(*it);
-            list_sentUnacked.erase(it);
+            list_sentUnacked.erase(it++);
             continue;
         } else if (unackedSeqNo.isLowerThan(nextExpected, window_size)) {
             deletePayload(it->second);
-            list_sentUnacked.erase(it);
+            list_sentUnacked.erase(it++);
             continue;
+        }else {
+            it++;
         }
-
     }
 
-    // set next expected to new value
-    // delete all segments which are implicitly acked
 }
 
 void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment) {
@@ -85,7 +87,10 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
         list_toPassUp.push_back(segment);
         seqno_lastPassedUp.increment();
 
-        for (auto it = list_rcvdOutOfSeq.begin(); it != list_rcvdOutOfSeq.end(); it++) {
+        auto it = list_rcvdOutOfSeq.begin();
+        auto end = list_rcvdOutOfSeq.end();
+
+        while(it != end) {
             L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
             seqNo = SequenceNumber(header->getSeqno());
 
@@ -94,7 +99,9 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
             if (seqNo == seqno_lastPassedUp.next()) {
                 list_toPassUp.push_back(*it);
                 seqno_lastPassedUp.increment();
-                list_rcvdOutOfSeq.erase(it);
+                list_rcvdOutOfSeq.erase(it++);
+            } else {
+                it++;
             }
         }
     } else if(seqNo.isLowerThan(seqno_lastPassedUp, window_size)){
@@ -150,7 +157,7 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
         auto header = (L2HeaderUnicast*)(segment.first);
         SequenceNumber seqNo = header->getSeqno();
         this->list_rtx.pop_front();
-        if(isUnacked(seqNo)) {
+        if(!isUnacked(seqNo)) {
             this->list_sentUnacked.push_back(segment);
         }
 
@@ -167,7 +174,7 @@ void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment)
     header->setSeqnoNextExpected(SequenceNumber(seqno_nextExpected));
     PacketUtils::setSrejList(header, getSrejList());
     PacketFragment copy = copyFragment(segment);
-    if(isUnacked(header->getSeqno())) {
+    if(!isUnacked(header->getSeqno())) {
         list_sentUnacked.push_back(copy);
     }
 }
