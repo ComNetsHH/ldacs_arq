@@ -44,7 +44,7 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
 
     if (seqno_nextExpected.isHigherThan(nextExpected, window_size)) {
         // This ack must be old as it acks an old sequence number.
-        // return;
+        //return;
     }
 
     for(int i = 0; i< srej.size(); i++) {
@@ -57,6 +57,7 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
     while (it != end) {
         L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
         auto unackedSeqNo = SequenceNumber(header->getSeqno().get());
+
         bool isInSrej = false;
         // if in srej, put in rtx list and delete
         for (auto it2 = srej.begin(); it2 != srej.end(); it2++) {
@@ -85,9 +86,9 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
 }
 
 void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment) {
-    processAck(segment);
     auto header = (L2HeaderUnicast *) segment.first;
     SequenceNumber seqNo = SequenceNumber(header->getSeqno());
+    processAck(segment);
     emit("arq_seq_no_received", (double)seqNo.get());
 
     if (seqno_nextExpected.isLowerThan(seqNo, window_size)) {
@@ -127,6 +128,7 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
             return seqNo1.isLowerThan(seqNo2, window_size);
         });
     }
+    state = ArqState::received_last;
 }
 
 bool SelectiveRepeatArqProcess::hasRtxSegment(unsigned int size) {
@@ -167,27 +169,68 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
         PacketFragment segment = copyFragment(original);
         auto header = (L2HeaderUnicast*)(segment.first);
         SequenceNumber seqNo = header->getSeqno();
+        txCount[(int)(seqNo.get())]++;
         this->list_rtx.pop_front();
-        if(!isUnacked(seqNo)) {
+        if(!isUnacked(seqNo) && maxTx <= txCount[(int)(seqNo.get())]) {
             this->list_sentUnacked.push_back(segment);
         }
 
+        // TODO: add current srej
         packet->addMessage(original.first, original.second);
         emit("arq_seq_no_sent", (double)((L2HeaderUnicast*)original.first)->getSeqno().get());
     }
+    state = ArqState::sent_last;
     return packet;
 }
 
 void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment) {
     auto header = (L2HeaderUnicast *) segment.first;
     header->setSeqno(SequenceNumber(seqno_nextToSend));
+    txCount[(int)(seqno_nextToSend.get())] = 0;
     seqno_nextToSend.increment();
     header->setSeqnoNextExpected(SequenceNumber(seqno_nextExpected));
-    PacketUtils::setSrejList(header, getSrejList());
+    auto srej_list = getSrejList();
+    PacketUtils::setSrejList(header, srej_list);
+
+    // handle max srej amount
+    if(state == ArqState::received_last) {
+        for(int i = 0; i< srej_list.size(); i++) {
+            auto seqNo = srej_list[i];
+            int idx = (int)(seqNo.get());
+            if(srejCount.find(idx) == srejCount.end()) {
+                srejCount[idx] = 0;
+            }
+            srejCount[idx]++;
+            if(srejCount[idx] > maxTx) {
+                srejCount[idx] = 0;
+                seqno_lastPassedUp.increment();
+                auto it = list_rcvdOutOfSeq.begin();
+                auto end = list_rcvdOutOfSeq.end();
+
+                while(it != end) {
+                    L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
+                    seqNo = SequenceNumber(header->getSeqno());
+
+                    emit("arq_out_of_sequence_list", (double)seqNo.get());
+
+                    if (seqNo == seqno_lastPassedUp.next()) {
+                        list_toPassUp.push_back(*it);
+                        seqno_lastPassedUp.increment();
+                        list_rcvdOutOfSeq.erase(it++);
+                    } else {
+                        it++;
+                    }
+                }
+
+            }
+        }
+    }
+
     PacketFragment copy = copyFragment(segment);
     if(!isUnacked(header->getSeqno())) {
         list_sentUnacked.push_back(copy);
     }
+    state = ArqState::sent_last;
 }
 
 vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {

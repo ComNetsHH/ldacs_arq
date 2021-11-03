@@ -20,7 +20,7 @@ L2Packet * MockRlc::requestSegment(unsigned int num_bits, const MacId &mac_id) {
     unicastHeader->dest_id = mac_id;
 
     auto payload = new InetPacketPayload();
-    payload->size = 100;
+    payload->size = 500;
     payload->offset = 0;
 
     packet->addMessage(unicastHeader, payload);

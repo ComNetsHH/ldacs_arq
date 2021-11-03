@@ -12,6 +12,7 @@
 #include "L2Packet.hpp"
 #include "MacId.hpp"
 #include <list>
+#include <map>
 #include <queue>
 
 using namespace std;
@@ -23,6 +24,13 @@ namespace TUHH_INTAIRNET_ARQ {
 
     class SelectiveRepeatArqProcess: public IOmnetPluggable {
     protected:
+        /** encodes wether the Arq has last sent or received **/
+        enum ArqState {
+            undefined,
+            sent_last,
+            received_last
+        };
+
         /** Mac address of the communication of this process **/
         MacId remoteAddress;
 
@@ -35,6 +43,16 @@ namespace TUHH_INTAIRNET_ARQ {
         uint8_t resend_timeout;
 
         uint8_t window_size;
+
+        int maxTx = 3;
+
+        ArqState state = ArqState::undefined;
+
+        /** Remembers the number of tx attempts for each seqno **/
+        std::map<int, int> txCount;
+
+        /** Remembers the number of srej notifications for each seqno **/
+        map<int, int> srejCount;
 
         /** The sequence number that was last passed up to the upper layer. */
         SequenceNumber seqno_lastPassedUp = SequenceNumber(SEQNO_UNSET);
