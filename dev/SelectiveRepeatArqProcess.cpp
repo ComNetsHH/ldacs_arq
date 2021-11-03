@@ -171,7 +171,7 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
         SequenceNumber seqNo = header->getSeqno();
         txCount[(int)(seqNo.get())]++;
         this->list_rtx.pop_front();
-        if(!isUnacked(seqNo) && maxTx <= txCount[(int)(seqNo.get())]) {
+        if(!isUnacked(seqNo) && maxTx >= txCount[(int)(seqNo.get())]) {
             this->list_sentUnacked.push_back(segment);
         }
 
@@ -186,7 +186,7 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
 void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment) {
     auto header = (L2HeaderUnicast *) segment.first;
     header->setSeqno(SequenceNumber(seqno_nextToSend));
-    txCount[(int)(seqno_nextToSend.get())] = 0;
+    txCount[(int)(seqno_nextToSend.get())] = 1;
     seqno_nextToSend.increment();
     header->setSeqnoNextExpected(SequenceNumber(seqno_nextExpected));
     auto srej_list = getSrejList();
