@@ -11,8 +11,8 @@
 
 using namespace TUHH_INTAIRNET_ARQ;
 
-SelectiveRepeatArq::SelectiveRepeatArq(MacId address, uint8_t resend_timeout, uint8_t window_size, double per)
-        : address(address), resend_timeout(resend_timeout), window_size(window_size), per(per) {
+SelectiveRepeatArq::SelectiveRepeatArq(MacId address, uint8_t resend_timeout, uint8_t window_size, int maxTx, double per)
+        : address(address), resend_timeout(resend_timeout), window_size(window_size), maxTx(maxTx), per(per) {
 }
 
 bool SelectiveRepeatArq::isInRtxState() const {
@@ -28,7 +28,7 @@ SelectiveRepeatArqProcess *SelectiveRepeatArq::getArqProcess(MacId remoteAddress
     if (it != arqProcesses.end()) {
         return it->second;
     }
-    auto process = new SelectiveRepeatArqProcess(this, address, remoteAddress);
+    auto process = new SelectiveRepeatArqProcess(this, address, remoteAddress, maxTx);
 
     if(emitCallback) {
         process->registerEmitEventCallback(emitCallback);
@@ -88,7 +88,7 @@ void SelectiveRepeatArq::notifyAboutNewLink(const MacId& id) {
         return;
         throw std::runtime_error("Link must be removed first");
     }
-    process = new SelectiveRepeatArqProcess(this, address, id);
+    process = new SelectiveRepeatArqProcess(this, address, id, maxTx);
     if(copyL2PayloadCallback) {
         process->registerCopyL2PayloadCallback(copyL2PayloadCallback);
     }

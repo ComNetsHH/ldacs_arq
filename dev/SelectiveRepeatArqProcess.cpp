@@ -12,15 +12,15 @@ using namespace TUHH_INTAIRNET_ARQ;
 using namespace TUHH_INTAIRNET_MCSOTDMA;
 using namespace std;
 
-SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(SelectiveRepeatArq* parent, MacId address, MacId remoteAddress, uint8_t resend_timeout,
-                                                     uint8_t window_size) : arq(parent), address(address), remoteAddress(remoteAddress) {
+SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(SelectiveRepeatArq* parent, MacId address, MacId remoteAddress, int maxTx, uint8_t resend_timeout,
+                                                     uint8_t window_size) : arq(parent), address(address), remoteAddress(remoteAddress), maxTx(maxTx) {
     this->resend_timeout = resend_timeout;
     this->window_size = window_size;
     //this->seqno_nextToSend = TUHH_INTAIRNET_MCSOTDMA::SequenceNumber(SEQNO_FIRST);
 }
 
-SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId address, MacId remoteAddress, uint8_t resend_timeout,
-                                                     uint8_t window_size) : address(address), remoteAddress(remoteAddress) {
+SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId address, MacId remoteAddress, int maxTx, uint8_t resend_timeout,
+                                                     uint8_t window_size) : address(address), remoteAddress(remoteAddress), maxTx(maxTx) {
     this->resend_timeout = resend_timeout;
     this->window_size = window_size;
     //this->seqno_nextToSend = TUHH_INTAIRNET_MCSOTDMA::SequenceNumber(SEQNO_FIRST);

@@ -22,7 +22,7 @@ namespace TUHH_INTAIRNET_ARQ {
     class SelectiveRepeatArq: public IArq, public IOmnetPluggable {
     public:
         /** Standard constructor with resend_timeout and window_size params **/
-        SelectiveRepeatArq(MacId address, uint8_t resend_timeout, uint8_t window_size, double per = 0);
+        SelectiveRepeatArq(MacId address, uint8_t resend_timeout, uint8_t window_size, int maxTx = 4, double per = 0);
 
         /** bringing back per here to run sims without touching any control packets **/
         double per = 0;
@@ -56,8 +56,10 @@ namespace TUHH_INTAIRNET_ARQ {
         void notifyAboutNewLink(const MacId& id) override;
         void notifyAboutRemovedLink(const MacId& id) override;
     protected:
-        /** Number of retransmissions. */
         int numRtx = 0;
+
+        /** Max number of transmissions. */
+        int maxTx = 0;
 
         /** Time until an unacknowledged segment is scheduled for retransmission. */
         uint8_t resend_timeout;
