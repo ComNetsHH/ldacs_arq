@@ -22,13 +22,13 @@ namespace TUHH_INTAIRNET_ARQ {
     class SelectiveRepeatArq: public IArq, public IOmnetPluggable {
     public:
         /** Standard constructor with resend_timeout and window_size params **/
-        SelectiveRepeatArq(uint8_t resend_timeout, uint8_t window_size, double per = 0);
+        SelectiveRepeatArq(MacId address, uint8_t resend_timeout, uint8_t window_size, int maxTx = 4, double per = 0);
+
+        /** bringing back per here to run sims without touching any control packets **/
+        double per = 0;
 
         /** Method for the MAC layer to query the buffer status. Will refer to RLC for answer **/
         unsigned int getBufferStatus();
-
-        /** Handle a segment from MAC layer **/
-        void receiveFromLowerLayer(L2Packet *segment);
 
         /** Returns true if any of the ArqProcesses has data to retransmit **/
         bool isInRtxState() const;
@@ -49,21 +49,26 @@ namespace TUHH_INTAIRNET_ARQ {
         /** TODO: **/
         bool shouldLinkBeArqProtected(const MacId& mac_id);
 
+        /** used by any process to trigger a new reporting of more data **/
+        void reportRtxData(MacId dest);
+
 
         void notifyAboutNewLink(const MacId& id) override;
         void notifyAboutRemovedLink(const MacId& id) override;
     protected:
-        /** Packet error rate imposed on the arq, INLY FOR DEBUGGING, REMOVE ME! */
-        double per = 0;
-
-        /** Number of retransmissions. */
         int numRtx = 0;
+
+        /** Max number of transmissions. */
+        int maxTx = 0;
 
         /** Time until an unacknowledged segment is scheduled for retransmission. */
         uint8_t resend_timeout;
 
         /** Window size. */
         uint64_t window_size;
+
+        /** My MacId **/
+        MacId address;
 
         /** ArqProcesses for each communication partner **/
         map<MacId, SelectiveRepeatArqProcess *> arqProcesses;

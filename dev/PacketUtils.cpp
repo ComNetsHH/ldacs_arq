@@ -39,7 +39,8 @@ vector<SequenceNumber> PacketUtils::getSrejList(L2HeaderUnicast *header) {
     auto srej_bitmap = header->srej_bitmap;
     for(int i = 0; i< srej_bitmap.size(); i++) {
         if(srej_bitmap[i]) {
-            srej.push_back(SequenceNumber(anchor - (16 - i)));
+            SequenceNumber x = anchor - (16 - i);
+            srej.push_back(x);
         }
     }
 
@@ -66,7 +67,7 @@ int PacketUtils::diff(SequenceNumber one, SequenceNumber other, uint8_t windowSi
 
     while(higher.get() != counter.get()) {
         counter.increment();
-        result ++;
+        result++;
     }
 
     return sign * result;
@@ -76,22 +77,8 @@ void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> sr
     SequenceNumber anchor = SequenceNumber(header->getSeqnoNextExpected());
     auto srej_bitmap = header->srej_bitmap;
 
-    cout << endl << endl;
-    cout << "A: " << (int)anchor.get() << endl;
-
-    for(int i= 0; i<  srej.size(); i++) {
-        cout << " S " << (int)srej[i].get() << endl;
-    }
-
-
-
-
     for(int i=0; i< srej.size(); i++) {
         int diff = PacketUtils::diff(anchor, srej[i]);
-
-        cout << "Anchor " << (int) anchor.get() << endl;
-        cout << "Seqno " << (int) srej[i].get() << endl;
-        cout << "Diff " << diff << endl;
 
         if(diff > 16) {
             anchor = SequenceNumber(srej[i]) + 16;
@@ -103,7 +90,7 @@ void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> sr
 
         // Ignore all seqnos out of range
         if(diff >= 1 && diff <= 16) {
-            cout << diff << endl;
+            //cout << diff << endl;
             srej_bitmap[16-diff] = true;
         }
 
@@ -117,14 +104,14 @@ void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> sr
     return;
 }
 
-PacketFragment PacketUtils::copyFragment(PacketFragment fragment) {
+/**
+PacketFragment PacketUtils::copyFragment(PacketFragment fragment, std::function<L2Packet::Payload*(L2Packet::Payload*)> copyFkt) {
     auto header = fragment.first->copy();
     auto payload = (InetPacketPayload*)fragment.second;
     if(payload != nullptr) {
-        payload = (InetPacketPayload*)fragment.second->copy();
-        if(payload->size > 0) {
-            payload->original = nullptr;
-        }
+        payload = (InetPacketPayload*)copyFkt(fragment.second);
     }
     return make_pair(header, payload);
 }
+
+ **/

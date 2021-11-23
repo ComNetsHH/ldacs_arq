@@ -12,27 +12,53 @@
 #include "L2Packet.hpp"
 #include "MacId.hpp"
 #include <list>
+#include <map>
 #include <queue>
 
 using namespace std;
 using namespace TUHH_INTAIRNET_MCSOTDMA;
 
 namespace TUHH_INTAIRNET_ARQ {
+    // Forward declare SelectiveRpeatArq
+    class SelectiveRepeatArq;
+
     class SelectiveRepeatArqProcess: public IOmnetPluggable {
     protected:
+        /** encodes wether the Arq has last sent or received **/
+        enum ArqState {
+            undefined,
+            sent_last,
+            received_last
+        };
+
         /** Mac address of the communication of this process **/
         MacId remoteAddress;
+
+        /** Reference to the parent process **/
+        SelectiveRepeatArq * arq = nullptr;
+
+        /** My MacId **/
+        MacId address;
 
         uint8_t resend_timeout;
 
         uint8_t window_size;
+
+        int maxTx = 3;
+
+        ArqState state = ArqState::undefined;
+
+        /** Remembers the number of tx attempts for each seqno **/
+        std::map<int, int> txCount;
+
+        /** Remembers the number of srej notifications for each seqno **/
+        map<int, int> srejCount;
 
         /** The sequence number that was last passed up to the upper layer. */
         SequenceNumber seqno_lastPassedUp = SequenceNumber(SEQNO_UNSET);
 
         /** The sequence number that will be assigned to the next newly sent segment. */
         SequenceNumber seqno_nextToSend = SequenceNumber(SEQNO_FIRST);
-        int seqno_next_to_send  = 1;
 
         /** The sequence number that is expected to arrive next. */
         SequenceNumber seqno_nextExpected = SequenceNumber(SEQNO_FIRST);
@@ -60,9 +86,14 @@ namespace TUHH_INTAIRNET_ARQ {
 
         bool wasReceivedOutOfOrder(SequenceNumber seqNo);
 
+        PacketFragment copyFragment(PacketFragment fragment);
+
+        bool isUnacked(SequenceNumber seqNo);
+
     public:
         /** Standard constructor **/
-        SelectiveRepeatArqProcess(MacId remoteAddress, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
+        SelectiveRepeatArqProcess(SelectiveRepeatArq* parent, MacId address, MacId remoteAddress, int maxTx, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
+        SelectiveRepeatArqProcess(MacId address, MacId remoteAddress, int maxTx, uint8_t resend_timeout = 0, uint8_t window_size = SEQNO_MAX / 2);
 
         /** If a ARQ process has no internal state anymore, it can be deleted **/
         bool isStale();
