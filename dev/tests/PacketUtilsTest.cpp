@@ -46,7 +46,7 @@ public:
         unsigned int arq_ack_slot = 52;
 
         vector<SequenceNumber> srej_original;
-        L2HeaderUnicast *header = new L2HeaderUnicast(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
+        L2HeaderPP *header = new L2HeaderPP(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
 
         srej_original.push_back(SequenceNumber(50));
 
@@ -70,7 +70,7 @@ public:
         unsigned int arq_ack_slot = 52;
         vector<SequenceNumber> srej;
 
-        L2HeaderUnicast *header = new L2HeaderUnicast(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
+        L2HeaderPP *header = new L2HeaderPP(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
 
         srej.push_back(SequenceNumber(254));
         srej.push_back(SequenceNumber(253));
@@ -90,7 +90,7 @@ public:
         unsigned int arq_ack_slot = 52;
         vector<SequenceNumber> srej;
 
-        L2HeaderUnicast *header = new L2HeaderUnicast(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
+        L2HeaderPP *header = new L2HeaderPP(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
 
         srej.push_back(SequenceNumber(2));
         srej.push_back(SequenceNumber(6));
@@ -119,7 +119,7 @@ public:
         unsigned int arq_ack_slot = 52;
         vector<SequenceNumber> srej;
 
-        L2HeaderUnicast *header = new L2HeaderUnicast(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
+        L2HeaderPP *header = new L2HeaderPP(dest_id, use_arq, arq_seqno, seq_no_next, arq_ack_slot);
 
         srej.push_back(SequenceNumber(254));
 

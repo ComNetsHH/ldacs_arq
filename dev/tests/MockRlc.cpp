@@ -10,11 +10,9 @@
 MockRlc::MockRlc(MacId id) :macId(id) {}
 
 L2Packet * MockRlc::requestSegment(unsigned int num_bits, const MacId &mac_id) {
-    auto packet = new L2Packet();
-    auto baseHeader = new L2HeaderBase(macId, 0,0,0,0);
-    packet->addMessage(baseHeader, nullptr);
+    auto packet = new L2Packet();    
 
-    auto unicastHeader = new L2HeaderUnicast(L2Header::FrameType::unicast);
+    auto unicastHeader = new L2HeaderPP();
     unicastHeader->is_pkt_start = true;
     unicastHeader->is_pkt_end = true;
     unicastHeader->dest_id = mac_id;

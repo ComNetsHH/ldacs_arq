@@ -14,15 +14,13 @@ using namespace TUHH_INTAIRNET_MCSOTDMA;
 
 class PacketUtils {
 public:
-    static MacId getSrcAddress(L2Packet* packet);
-
-    static L2HeaderBase* getBaseHeader(L2Packet* packet);
+    static MacId getSrcAddress(L2Packet* packet);    
 
     static vector<PacketFragment> getUnicastFragments(L2Packet* packet);
 
-    static vector<SequenceNumber> getSrejList(L2HeaderUnicast * header);
+    static vector<SequenceNumber> getSrejList(L2HeaderPP * header);
 
-    static void setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> srej);
+    static void setSrejList(L2HeaderPP *header, vector<SequenceNumber> srej);
 
     static int diff(SequenceNumber one, SequenceNumber other, uint8_t windowSize = 100);
 

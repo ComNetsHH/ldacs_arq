@@ -9,14 +9,11 @@ using namespace std;
 using namespace TUHH_INTAIRNET_MCSOTDMA;
 
 MacId PacketUtils::getSrcAddress(L2Packet* packet) {
-    auto baseHeader = PacketUtils::getBaseHeader(packet);
-    return baseHeader->src_id;
-}
-
-L2HeaderBase* PacketUtils::getBaseHeader(L2Packet* packet) {
-    auto headers = packet->getHeaders();
-    auto baseHeader = (L2HeaderBase*)headers[0];
-    return baseHeader;
+    const L2Header* header = packet->getHeaders().at(0);
+    if (header->frame_type == L2Header::unicast)
+        return ((L2HeaderPP*) header)->src_id;
+    else
+        return ((L2HeaderSH*) header)->src_id;    
 }
 
 vector<PacketFragment> PacketUtils::getUnicastFragments(L2Packet* packet) {
@@ -33,7 +30,7 @@ vector<PacketFragment> PacketUtils::getUnicastFragments(L2Packet* packet) {
     return fragments;
 }
 
-vector<SequenceNumber> PacketUtils::getSrejList(L2HeaderUnicast *header) {
+vector<SequenceNumber> PacketUtils::getSrejList(L2HeaderPP *header) {
     vector<SequenceNumber> srej;
     SequenceNumber anchor = header->getSeqnoNextExpected();
     auto srej_bitmap = header->srej_bitmap;
@@ -73,7 +70,7 @@ int PacketUtils::diff(SequenceNumber one, SequenceNumber other, uint8_t windowSi
     return sign * result;
 }
 
-void PacketUtils::setSrejList(L2HeaderUnicast *header, vector<SequenceNumber> srej) {
+void PacketUtils::setSrejList(L2HeaderPP *header, vector<SequenceNumber> srej) {
     SequenceNumber anchor = SequenceNumber(header->getSeqnoNextExpected());
     auto srej_bitmap = header->srej_bitmap;
 

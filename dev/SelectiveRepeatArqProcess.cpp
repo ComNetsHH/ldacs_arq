@@ -30,7 +30,7 @@ vector<PacketFragment> SelectiveRepeatArqProcess::getInOrderSegments() {
     vector<PacketFragment> result;
     for (auto const &segment: list_toPassUp) {
         result.push_back(segment);
-        SequenceNumber seqNo = ((L2HeaderUnicast *) segment.first)->getSeqno();
+        SequenceNumber seqNo = ((L2HeaderPP *) segment.first)->getSeqno();
         emit("arq_seq_no_passed_up", (double)seqNo.get());
     }
     list_toPassUp.clear();
@@ -38,7 +38,7 @@ vector<PacketFragment> SelectiveRepeatArqProcess::getInOrderSegments() {
 }
 
 void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
-    auto header = (L2HeaderUnicast *) segment.first;
+    auto header = (L2HeaderPP *) segment.first;
     SequenceNumber nextExpected = SequenceNumber(header->getSeqnoNextExpected());
     vector<SequenceNumber> srej = PacketUtils::getSrejList(header);
 
@@ -55,7 +55,7 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
     auto end = list_sentUnacked.end();
 
     while (it != end) {
-        L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
+        L2HeaderPP *header = (L2HeaderPP *) it->first;
         auto unackedSeqNo = SequenceNumber(header->getSeqno().get());
 
         bool isInSrej = false;
@@ -86,7 +86,7 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
 }
 
 void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment) {
-    auto header = (L2HeaderUnicast *) segment.first;
+    auto header = (L2HeaderPP *) segment.first;
     SequenceNumber seqNo = SequenceNumber(header->getSeqno());
     processAck(segment);
     emit("arq_seq_no_received", (double)seqNo.get());
@@ -103,7 +103,7 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
         auto end = list_rcvdOutOfSeq.end();
 
         while(it != end) {
-            L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
+            L2HeaderPP *header = (L2HeaderPP *) it->first;
             seqNo = SequenceNumber(header->getSeqno());
 
             emit("arq_out_of_sequence_list", (double)seqNo.get());
@@ -121,8 +121,8 @@ void SelectiveRepeatArqProcess::processLowerLayerSegment(PacketFragment segment)
     } else {
         list_rcvdOutOfSeq.push_back(segment);
         list_rcvdOutOfSeq.sort([this](PacketFragment s1, PacketFragment s2) {
-            L2HeaderUnicast *header1 = (L2HeaderUnicast *) s1.first;
-            L2HeaderUnicast *header2 = (L2HeaderUnicast *) s2.first;
+            L2HeaderPP *header1 = (L2HeaderPP *) s1.first;
+            L2HeaderPP *header2 = (L2HeaderPP *) s2.first;
             auto seqNo1 = header1->getSeqno();
             auto seqNo2 = header2->getSeqno();
             return seqNo1.isLowerThan(seqNo2, window_size);
@@ -137,7 +137,7 @@ bool SelectiveRepeatArqProcess::hasRtxSegment(unsigned int size) {
 
 bool SelectiveRepeatArqProcess::wasReceivedOutOfOrder(SequenceNumber seqNo) {
     for (auto it = list_rcvdOutOfSeq.begin(); it != list_rcvdOutOfSeq.end(); it++) {
-        auto header = (L2HeaderUnicast *) (*it).first;
+        auto header = (L2HeaderPP *) (*it).first;
         SequenceNumber outOfOrderSeqNo = SequenceNumber(header->getSeqno());
         if (outOfOrderSeqNo == seqNo) {
             return true;
@@ -149,7 +149,7 @@ bool SelectiveRepeatArqProcess::wasReceivedOutOfOrder(SequenceNumber seqNo) {
 unsigned int SelectiveRepeatArqProcess::getRtxSize() {
     unsigned int result = 0;
     for (auto it = list_rtx.begin(); it != list_rtx.end(); it++) {
-        auto header = (L2HeaderUnicast *) (*it).first;
+        auto header = (L2HeaderPP *) (*it).first;
         auto payload = (*it).second;
         result += header->getBits();
         if(payload != nullptr) {
@@ -161,13 +161,11 @@ unsigned int SelectiveRepeatArqProcess::getRtxSize() {
 
 L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
     auto packet = new L2Packet();
-    L2HeaderBase* base_header = new L2HeaderBase(address, 0, 0, 0, 0);
-    packet->addMessage(base_header, nullptr);
-
+    
     while(packet->getBits() < size && list_rtx.size() > 0) {
         PacketFragment original = list_rtx.front();
         PacketFragment segment = copyFragment(original);
-        auto header = (L2HeaderUnicast*)(segment.first);
+        auto header = (L2HeaderPP*)(segment.first);
         SequenceNumber seqNo = header->getSeqno();
         txCount[(int)(seqNo.get())]++;
         this->list_rtx.pop_front();
@@ -177,14 +175,14 @@ L2Packet *SelectiveRepeatArqProcess::getRtxSegment(unsigned int size) {
 
         // TODO: add current srej
         packet->addMessage(original.first, original.second);
-        emit("arq_seq_no_sent", (double)((L2HeaderUnicast*)original.first)->getSeqno().get());
+        emit("arq_seq_no_sent", (double)((L2HeaderPP*)original.first)->getSeqno().get());
     }
     state = ArqState::sent_last;
     return packet;
 }
 
 void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment) {
-    auto header = (L2HeaderUnicast *) segment.first;
+    auto header = (L2HeaderPP *) segment.first;
     header->setSeqno(SequenceNumber(seqno_nextToSend));
     txCount[(int)(seqno_nextToSend.get())] = 1;
     seqno_nextToSend.increment();
@@ -208,7 +206,7 @@ void SelectiveRepeatArqProcess::processUpperLayerSegment(PacketFragment segment)
                 auto end = list_rcvdOutOfSeq.end();
 
                 while(it != end) {
-                    L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
+                    L2HeaderPP *header = (L2HeaderPP *) it->first;
                     seqNo = SequenceNumber(header->getSeqno());
 
                     emit("arq_out_of_sequence_list", (double)seqNo.get());
@@ -260,7 +258,7 @@ unsigned int SelectiveRepeatArqProcess::getNumRtx() {
 
 bool SelectiveRepeatArqProcess::isUnacked(SequenceNumber seqNo) {
     for (auto it = list_sentUnacked.begin(); it != list_sentUnacked.end(); it++) {
-        L2HeaderUnicast *header = (L2HeaderUnicast *) it->first;
+        L2HeaderPP *header = (L2HeaderPP *) it->first;
         auto unackedSeqNo = SequenceNumber(header->getSeqno().get());
 
         if(seqNo.get() == unackedSeqNo.get()) {

@@ -146,7 +146,7 @@ L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId&
 
     for(int i=0; i< fragments.size(); i++) {
         process->processUpperLayerSegment(fragments[i]);
-        auto header = (L2HeaderUnicast*)fragments[i].first;
+        auto header = (L2HeaderPP*)fragments[i].first;
         emit("arq_seq_no_sent", (double)header->getSeqno().get());
     }
     emit("arq_bits_sent_down", (double)segment->getBits());
@@ -184,11 +184,9 @@ void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
     auto inOrderFragments = process->getInOrderSegments();
     if(inOrderFragments.size() > 0) {
         auto completePacket = new L2Packet();
-        L2HeaderBase* base_header = new L2HeaderBase(process->getMacId(), 0, 0, 0, 0);
-        completePacket->addMessage(base_header, nullptr);
-
+        
         for(int i = 0; i< inOrderFragments.size(); i++) {
-            auto header = (L2HeaderUnicast*)inOrderFragments[i].first;
+            auto header = (L2HeaderPP*)inOrderFragments[i].first;
 
             emit("arq_seqno_passed_up", (double)header->getSeqno().get());
             completePacket->addMessage(inOrderFragments[i].first, inOrderFragments[i].second);

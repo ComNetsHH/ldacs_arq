@@ -25,7 +25,7 @@ public:
 	void createProcesses() {
         SelectiveRepeatArq arq = SelectiveRepeatArq(MacId(2),100, 100);
         TestPayload payload = TestPayload();
-        L2HeaderUnicast h1 = L2HeaderUnicast(MacId(100),
+        L2HeaderPP h1 = L2HeaderPP(MacId(100),
                                              true,
                                              SequenceNumber(2),
                                              SequenceNumber(SEQNO_UNSET),
@@ -38,7 +38,7 @@ public:
 
         CPPUNIT_ASSERT_EQUAL(arq.getNumProcesses(), 1);
 
-        L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
+        L2HeaderPP h2 = L2HeaderPP(MacId(100),
                                              true,
                                              SequenceNumber(2),
                                              SequenceNumber(SEQNO_UNSET),
@@ -57,7 +57,7 @@ public:
         SelectiveRepeatArq arq = SelectiveRepeatArq(MacId(2),100, 100);
         // Add a single segment in order
         TestPayload payload = TestPayload();
-        L2HeaderUnicast h1 = L2HeaderUnicast(MacId(100),
+        L2HeaderPP h1 = L2HeaderPP(MacId(100),
                                              true,
                                              SequenceNumber(SEQNO_FIRST),
                                              SequenceNumber(SEQNO_UNSET),
@@ -67,7 +67,7 @@ public:
         L2Packet s1;
         s1.addMessage(&h1, &payload);
         arq.receiveFromLower(&s1);
-        L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
+        L2HeaderPP h2 = L2HeaderPP(MacId(100),
                                              true,
                                              SequenceNumber(SEQNO_FIRST),
                                              SequenceNumber(SEQNO_UNSET),
@@ -86,7 +86,7 @@ public:
         SelectiveRepeatArq arq = SelectiveRepeatArq(MacId(2),100, 100);
         // Add a single segment in order
         TestPayload payload = TestPayload();
-        L2HeaderUnicast h1 = L2HeaderUnicast(MacId(100),
+        L2HeaderPP h1 = L2HeaderPP(MacId(100),
                                              true,
                                              SequenceNumber(13),
                                              SequenceNumber(SEQNO_UNSET),
@@ -96,7 +96,7 @@ public:
         L2Packet s1;
         s1.addMessage(&h1, &payload);
         arq.receiveFromLower(&s1);
-        L2HeaderUnicast h2 = L2HeaderUnicast(MacId(100),
+        L2HeaderPP h2 = L2HeaderPP(MacId(100),
                                              true,
                                              SequenceNumber(12),
                                              SequenceNumber(SEQNO_UNSET),

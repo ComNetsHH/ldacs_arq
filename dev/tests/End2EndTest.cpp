@@ -72,8 +72,8 @@ public:
 
 
             // -> print
-            auto leftUnicastHeader = (L2HeaderUnicast*)(leftPacket->getHeaders()[1]);
-            auto rightUnicastHeader = (L2HeaderUnicast*)(rightPacket->getHeaders()[1]);
+            auto leftUnicastHeader = (L2HeaderPP*)(leftPacket->getHeaders()[1]);
+            auto rightUnicastHeader = (L2HeaderPP*)(rightPacket->getHeaders()[1]);
             //cout << "left " << (int)(leftUnicastHeader->seqno.get()) << endl;
             //print_srej_list(PacketUtils::getSrejList(leftUnicastHeader));
             //cout << "right " << (int)(rightUnicastHeader->seqno.get()) << endl << endl;
@@ -130,8 +130,8 @@ public:
 
 
             // -> print
-            auto leftUnicastHeader = (L2HeaderUnicast*)(leftPacket->getHeaders()[1]);
-            auto rightUnicastHeader = (L2HeaderUnicast*)(rightPacket->getHeaders()[1]);
+            auto leftUnicastHeader = (L2HeaderPP*)(leftPacket->getHeaders()[1]);
+            auto rightUnicastHeader = (L2HeaderPP*)(rightPacket->getHeaders()[1]);
             cout << "Arq(2) sends " << (int)(leftUnicastHeader->seqno.get()) << endl;
             print_srej_list(PacketUtils::getSrejList(leftUnicastHeader));
             // cout << "right sends " << (int)(rightUnicastHeader->seqno.get()) << endl << endl;
