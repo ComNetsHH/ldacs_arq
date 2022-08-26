@@ -128,19 +128,22 @@ void SelectiveRepeatArq::reportRtxData(MacId dest) {
 }
 
 L2Packet* SelectiveRepeatArq::requestSegment(unsigned int num_bits, const MacId& mac_id) {
-    if(mac_id != SYMBOLIC_LINK_ID_BROADCAST) {
+    IRlc* rlc = getUpperLayer();
+    if(mac_id == SYMBOLIC_LINK_ID_BROADCAST) {
+        return rlc->requestSegment(num_bits, mac_id);
+    }else {
         emit("arq_bits_requested_from_lower", (double)num_bits);
     }
     debug("SelectiveRepeatArq::requestSegment " + std::to_string(num_bits));
     if(hasRtxSegment(mac_id, num_bits)) {
-        auto rtxPacket =  getRtxSegment(mac_id, num_bits);
+        auto rtxPacket = getRtxSegment(mac_id, num_bits);
         emit("arq_bits_sent_down", (double)rtxPacket->getBits());
         emit("arq_num_rtx", (double)(++this->numRtx));
 
         return rtxPacket;
     }
-    IRlc* rlc = getUpperLayer();
     L2Packet* segment = rlc->requestSegment(num_bits, mac_id);
+
     auto fragments = PacketUtils::getUnicastFragments(segment);
     auto process = getArqProcess(mac_id);
 
@@ -174,6 +177,7 @@ void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
 
     debug("SelectiveRepeatArq::receiveFromLower");
     MacId src = packet->getOrigin();
+
     auto process = getArqProcess(src);
     auto fragments = PacketUtils::getUnicastFragments(packet);
 
