@@ -169,6 +169,10 @@ void SelectiveRepeatArq::injectIntoUpper(L2Packet* packet) {
 }
 
 void SelectiveRepeatArq::receiveFromLower(L2Packet* packet) {
+    if (packet == nullptr) {
+        return;
+    }
+    
     float unif = (float) rand()/RAND_MAX;
 
     if(unif < per) {
