@@ -8,7 +8,7 @@ include_directories(glue-lib-headers)
 # Remove if not needed
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include -I/usr/local/include/ -L/usr/local/Cellar/cppunit/1.15.1/lib")
 
-set(TARGET_SRC tuhh_intairnet_arq.cpp tuhh_intairnet_arq.h  SelectiveRepeatArq.cpp SelectiveRepeatArq.hpp SelectiveRepeatArqProcess.cpp SelectiveRepeatArqProcess.hpp TYPES.h)
+set(TARGET_SRC SelectiveRepeatArq.cpp SelectiveRepeatArq.hpp SelectiveRepeatArqProcess.cpp SelectiveRepeatArqProcess.hpp)
 set(TARGET_TEST_SRC tests/unittests.cpp tests/SelectiveRepeatArqTest.cpp tests/SelectiveRepeatArqProcessTest.cpp tests/End2EndTest.cpp tests/MockRlc.cpp tests/MockRlc.hpp)
 set(TARGET_INCL glue-lib-headers/CPRPosition.hpp glue-lib-headers/IArq.hpp glue-lib-headers/IMac.hpp glue-lib-headers/IRlc.hpp glue-lib-headers/L2Header.hpp glue-lib-headers/L2Packet.hpp glue-lib-headers/MacId.hpp glue-lib-headers/SequenceNumber.cpp glue-lib-headers/SequenceNumber.hpp PacketUtils.cpp PacketUtils.hpp PacketFragment.hpp)
 

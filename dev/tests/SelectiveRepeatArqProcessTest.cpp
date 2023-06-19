@@ -244,7 +244,6 @@ CPPUNIT_TEST_SUITE(SelectiveRepeatArqProcessTest);
         CPPUNIT_TEST(addSegmentInOrder);
         CPPUNIT_TEST(addSegmentOutOfOrder);
         CPPUNIT_TEST(addSeveralSegmentsOutOfOrder);
-        // CPPUNIT_TEST(testHasRtxSegment);
         CPPUNIT_TEST(testAddSegmentFromUpperLayer);
         CPPUNIT_TEST(testSelectiveRejection);
         CPPUNIT_TEST(handlesAck);

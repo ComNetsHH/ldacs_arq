@@ -29,8 +29,6 @@ using namespace std;
 int main(int argc, const char* argv[]) {
     CppUnit::TextUi::TestRunner runner;
 
-    //runner.addTest(PacketUtilsTest::suite());
-    //runner.addTest(SelectiveRepeatArqProcessTest::suite());
     runner.addTest(End2EndTest::suite());
 
     runner.run();

@@ -225,7 +225,7 @@ void SelectiveRepeatArq::processIncomingHeader(L2Packet* incoming_packet) {
 }
 
 void SelectiveRepeatArq::onEvent(double time) {
-
+    return;
 }
 
 void SelectiveRepeatArq::emitStatistics() {

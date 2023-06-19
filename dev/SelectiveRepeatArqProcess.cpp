@@ -28,14 +28,12 @@ SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(SelectiveRepeatArq* parent,
                                                      uint8_t window_size) : arq(parent), address(address), remoteAddress(remoteAddress), maxTx(maxTx) {
     this->resend_timeout = resend_timeout;
     this->window_size = window_size;
-    //this->seqno_nextToSend = TUHH_INTAIRNET_MCSOTDMA::SequenceNumber(SEQNO_FIRST);
 }
 
 SelectiveRepeatArqProcess::SelectiveRepeatArqProcess(MacId address, MacId remoteAddress, int maxTx, uint8_t resend_timeout,
                                                      uint8_t window_size) : address(address), remoteAddress(remoteAddress), maxTx(maxTx) {
     this->resend_timeout = resend_timeout;
     this->window_size = window_size;
-    //this->seqno_nextToSend = TUHH_INTAIRNET_MCSOTDMA::SequenceNumber(SEQNO_FIRST);
 }
 
 vector<PacketFragment> SelectiveRepeatArqProcess::getInOrderSegments() {
@@ -53,11 +51,6 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
     auto header = (L2HeaderPP *) segment.first;
     SequenceNumber nextExpected = SequenceNumber(header->getSeqnoNextExpected());
     vector<SequenceNumber> srej = PacketUtils::getSrejList(header);
-
-    if (seqno_nextExpected.isHigherThan(nextExpected, window_size)) {
-        // This ack must be old as it acks an old sequence number.
-        //return;
-    }
 
     for(int i = 0; i< srej.size(); i++) {
         emit("arq_srej", (double)srej[i].get());
@@ -79,7 +72,6 @@ void SelectiveRepeatArqProcess::processAck(PacketFragment segment) {
         }
 
         if (isInSrej) {
-            // PacketFragment copy = PacketUtils::copyFragment(*it, [this](L2Packet::Payload* payload) {return this->deepCopy(payload);});
             list_rtx.push_back(*it);
             list_sentUnacked.erase(it++);
             if(arq) {
@@ -247,7 +239,6 @@ vector<SequenceNumber> SelectiveRepeatArqProcess::getSrejList() {
     vector<SequenceNumber> list;
     SequenceNumber seqNo(seqno_lastPassedUp.next());
 
-    // unsure if prev works
     while (seqNo.isLowerThan(seqno_nextExpected, window_size)) {
         if (wasReceivedOutOfOrder(seqNo)) {
             seqNo.increment();

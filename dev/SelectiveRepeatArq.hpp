@@ -24,7 +24,6 @@
 #include "SequenceNumber.hpp"
 #include "IArq.hpp"
 #include "IOmnetPluggable.hpp"
-#include "TYPES.h"
 #include "SelectiveRepeatArqProcess.hpp"
 
 
@@ -58,16 +57,20 @@ namespace TUHH_INTAIRNET_ARQ {
         /** Get Segments to be passed up **/
         vector<PacketFragment> getInOrderSegments();
 
-        /** TODO: **/
+        /** Decides wether a link should be protected default yes **/
         bool shouldLinkBeArqProtected(const MacId& mac_id);
 
         /** used by any process to trigger a new reporting of more data **/
         void reportRtxData(MacId dest);
 
-
+        /* handle notification about new link */
         void notifyAboutNewLink(const MacId& id) override;
+
+        /* handle notification about removed link */
         void notifyAboutRemovedLink(const MacId& id) override;
+
     protected:
+        /* current number of rtx */
         int numRtx = 0;
 
         /** Max number of transmissions. */

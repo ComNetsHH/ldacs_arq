@@ -17,7 +17,6 @@
 #ifndef TUHH_INTAIRNET_ARQ_SELECTIVEREPEATARQPROCESSTEST_HPP
 #define TUHH_INTAIRNET_ARQ_SELECTIVEREPEATARQPROCESSTEST_HPP
 
-#include "TYPES.h"
 #include "PacketFragment.hpp"
 #include "SequenceNumber.hpp"
 #include "IOmnetPluggable.hpp"
@@ -52,12 +51,16 @@ namespace TUHH_INTAIRNET_ARQ {
         /** My MacId **/
         MacId address;
 
-        uint8_t resend_timeout;
-
+        /** Size of the SeqNo window **/
         uint8_t window_size;
 
+        /** Max number of retransmissions **/
         int maxTx = 3;
 
+        /** Time until an unacknowledged segment is scheduled for retransmission. */
+        uint8_t resend_timeout;
+
+        /** Current statue of the process **/
         ArqState state = ArqState::undefined;
 
         /** Remembers the number of tx attempts for each seqno **/
@@ -75,8 +78,6 @@ namespace TUHH_INTAIRNET_ARQ {
         /** The sequence number that is expected to arrive next. */
         SequenceNumber seqno_nextExpected = SequenceNumber(SEQNO_FIRST);
 
-        /** UNUSED: The sequence number of the last-acknowledged segment. */
-        //SequenceNumber seqno_lastAcked = SequenceNumber(SEQNO_FIRST);
 
         /** List of segments that were sent and were not acknowledged yet. */
         std::list<PacketFragment> list_sentUnacked;
@@ -127,12 +128,12 @@ namespace TUHH_INTAIRNET_ARQ {
         unsigned int getRtxSize();
 
         unsigned int getNumReceivedOutOfSequence();
+
         unsigned int getNumRtx();
+
         unsigned int getNumUnacked();
 
         MacId getMacId();
-
-
     };
 
 }

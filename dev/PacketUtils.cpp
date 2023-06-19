@@ -99,7 +99,6 @@ void PacketUtils::setSrejList(L2HeaderPP *header, vector<SequenceNumber> srej) {
 
         // Ignore all seqnos out of range
         if(diff >= 1 && diff <= 16) {
-            //cout << diff << endl;
             srej_bitmap[16-diff] = true;
         }
 
@@ -113,14 +112,3 @@ void PacketUtils::setSrejList(L2HeaderPP *header, vector<SequenceNumber> srej) {
     return;
 }
 
-/**
-PacketFragment PacketUtils::copyFragment(PacketFragment fragment, std::function<L2Packet::Payload*(L2Packet::Payload*)> copyFkt) {
-    auto header = fragment.first->copy();
-    auto payload = (InetPacketPayload*)fragment.second;
-    if(payload != nullptr) {
-        payload = (InetPacketPayload*)copyFkt(fragment.second);
-    }
-    return make_pair(header, payload);
-}
-
- **/
